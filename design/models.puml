@@ -1,0 +1,67 @@
+@startuml Models
+
+enum UserState {
+    State of a user account.
+    __Values__
+    - Enabled: 0
+    - Disabled: 1
+}
+
+entity User {
+    An authenticated user from the system
+    where the app is running, for example
+    on Android we use Account Manager for
+    choosing an account.
+    __Properties__
+    - Id: str
+    - Phone: str
+    - State: UserState
+    - Roles: list[str]
+}
+
+entity SelectedCarPark {
+    A user selected carpark.
+    __Properties__
+    - Id: int
+    - UserId: str
+    - CarParkId: str
+}
+
+entity Vehicle {
+    A parkable vehicle.
+    __Properties__
+    - Id: int
+    - LisencePlate: str
+    - Name: str
+}
+
+entity ParkingLog {
+    Parking actions (start/stop parking) generate
+    ParkingLogs.
+    __Properties__
+    - Id: int
+    - CarParkId: str
+    - UserId: str
+    - LisencePlate: str
+    - Type: str
+    - Timestamp: int
+}
+
+object UserData {
+    Parking settings for the user.
+    __Properties__
+    - User: User
+    - Phone: str
+    - Vehicles: list[Vehicle]
+    - CarParks: list[SelectedCarPark]
+}
+
+User *-- UserState
+User --{ SelectedCarPark: selected
+User --{ Vehicle: owns
+User --{ ParkingLog: has
+UserData o-- User
+UserData o-- Vehicle
+UserData o-- SelectedCarPark
+
+@enduml
