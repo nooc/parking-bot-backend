@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "GAE service",
+			"path": "parking-bot"
+		},
+		{
+			"path": "design"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.j2": "jinja-html"
+		},
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/bin": true,
+			"**/obj": true
+		},
+	}
+}

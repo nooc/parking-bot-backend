@@ -1,0 +1,6 @@
+#
+# git-crypt
+#
+parking-bot/micro-services-*.json	filter=git-crypt diff=git-crypt
+parking-bot/.env	filter=git-crypt diff=git-crypt
+parking-bot/.test.env	filter=git-crypt diff=git-crypt
