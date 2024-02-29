@@ -1,11 +1,14 @@
 import httpx
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
+from mock_db import Database
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app import parkingbot
 from app.config import Settings
 from app.services.open_data_parking import OpenDataParking
+from app.services.user_manager import UserManager
 
 
 class TestSettings(Settings):
@@ -19,6 +22,16 @@ def settings() -> BaseSettings:
 
 
 @pytest.fixture(scope="session")
+def fernet(settings) -> Fernet:
+    return Fernet(key=settings.FERNET_KEY)
+
+
+@pytest.fixture(scope="session")
+def mock_db() -> Database:
+    return Database()
+
+
+@pytest.fixture(scope="session")
 def server(settings) -> TestClient:
     return TestClient(
         app=parkingbot,
@@ -29,3 +42,8 @@ def server(settings) -> TestClient:
 @pytest.fixture(scope="session")
 def open_data(settings) -> OpenDataParking:
     return OpenDataParking(settings, httpx.Client(http2=True))
+
+
+@pytest.fixture(scope="session")
+def user_manager(mock_db, fernet) -> UserManager:
+    return UserManager(mock_db, fernet)
