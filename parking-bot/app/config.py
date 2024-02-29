@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".prod.env")
 
     DEBUG: Optional[bool] = False
-    SWAGGER_UI = Optional[bool] = False
+    SWAGGER_UI: Optional[bool] = False
 
     PROJECT_NAME: Optional[str] = None
     PROJECT_DESC: Optional[str] = None

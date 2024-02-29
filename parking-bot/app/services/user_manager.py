@@ -1,5 +1,5 @@
 from app.models.carpark import SelectedCarPark
-from app.models.user import User, UserCreate
+from app.models.user import User, UserCreate, UserUpdate
 from app.models.vehicle import Vehicle
 from app.services.data_manager import _DataManager
 
@@ -12,16 +12,17 @@ class UserManager(_DataManager):
         super().__init__(db, fernet)
 
     def create_user(self, user_data: UserCreate) -> User:
-        new_user = User(**user_data.model_dump(exclude_none=True, exclude_unset=True))
+        new_user = User(**user_data.model_dump())
         self._db.put_object(self._shade(new_user, *self.__shaded_keys))
         return new_user
 
     def get_user(self, id: str) -> User:
         return self._unshade(self._db.get_object(User, id), *self.__shaded_keys)
 
-    def update_user(self, user: User, user_data: UserCreate) -> User:
-        if user_data.Phone:
-            user.Phone = user_data.Phone
+    def update_user(self, user: User, user_data: UserUpdate) -> User:
+        update_data = user_data.model_dump(exclude_unset=True)
+        for k, v in update_data.items():
+            setattr(user, k, v)
         self._db.put_object(self._shade(user, *self.__shaded_keys))
         return user
 

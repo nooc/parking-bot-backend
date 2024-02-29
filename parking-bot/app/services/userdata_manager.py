@@ -7,7 +7,7 @@ from app.services.data_manager import _DataManager
 
 class UserdataManager(_DataManager):
 
-    __shaded_keys = ["LicensePlate", "Phone"]
+    __shaded_keys = ["LicensePlate"]
 
     def __init__(self, db, fernet):
         super().__init__(db, fernet)
