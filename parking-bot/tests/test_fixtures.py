@@ -9,6 +9,7 @@ from app.services.open_data_parking import OpenDataParking
 
 
 class TestSettings(Settings):
+    __test__ = False
     model_config = SettingsConfigDict(env_file=".test.env")
 
 
@@ -20,7 +21,8 @@ def settings() -> BaseSettings:
 @pytest.fixture(scope="session")
 def server(settings) -> TestClient:
     return TestClient(
-        app=parkingbot, base_url=f"https://127.0.0.1:8000{settings.API_ENDPOINT}"
+        app=parkingbot,
+        base_url=f"https://127.0.0.1:8000{settings.API_ENDPOINT}",
     )
 
 
