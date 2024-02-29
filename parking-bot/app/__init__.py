@@ -2,7 +2,7 @@ import logging
 import os
 
 import httpx
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -24,7 +24,7 @@ def create_app():
         redoc_url=None,
         **extra,
     )
-    # app.add_middleware(HTTPSRedirectMiddleware)
+    app.add_middleware(HTTPSRedirectMiddleware)
     app.include_router(api_router, prefix=conf.API_ENDPOINT)
     app.mount("/static", StaticFiles(directory="static"), name="static")
 

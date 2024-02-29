@@ -1,6 +1,6 @@
 runtime: python312
 service: parkingbot
-entrypoint: gunicorn -w 2 -b :$PORT -k uvicorn.workers.UvicornWorker app:base:parkingbot
+entrypoint: gunicorn -w 2 -b :$PORT -k uvicorn.workers.UvicornWorker app:parkingbot
 instance_class: F1
 default_expiration: "30s"
 automatic_scaling:
