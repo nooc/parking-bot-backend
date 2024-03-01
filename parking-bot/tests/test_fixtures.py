@@ -9,6 +9,7 @@ from app import parkingbot
 from app.config import Settings
 from app.services.open_data_parking import OpenDataParking
 from app.services.user_manager import UserManager
+from app.services.userdata_manager import UserdataManager
 
 
 class TestSettings(Settings):
@@ -27,7 +28,7 @@ def fernet(settings) -> Fernet:
 
 
 @pytest.fixture(scope="session")
-def mock_db() -> Database:
+def database() -> Database:
     return Database()
 
 
@@ -45,5 +46,10 @@ def open_data(settings) -> OpenDataParking:
 
 
 @pytest.fixture(scope="session")
-def user_manager(mock_db, fernet) -> UserManager:
-    return UserManager(mock_db, fernet)
+def user_manager(database, fernet) -> UserManager:
+    return UserManager(database, fernet)
+
+
+@pytest.fixture(scope="session")
+def userdata_manager(database, fernet) -> UserdataManager:
+    return UserdataManager(database, fernet)

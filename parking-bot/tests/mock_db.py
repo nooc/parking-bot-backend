@@ -3,7 +3,9 @@ from typing import Any, Union
 
 from pydantic import BaseModel
 
+from app.models.carpark import SelectedCarPark
 from app.models.user import User, UserState
+from app.models.vehicle import Vehicle
 
 
 class Database:
@@ -48,19 +50,27 @@ class Database:
         return str(uuid.uuid1())
 
     def __init__(self) -> None:
-        self.__data = {
-            User: {
-                "test-user-1": User(
-                    Id="test-user-1", State=UserState.Normal, Roles=["user"]
-                ),
-                "test-user-2": User(
-                    Id="test-user-2", State=UserState.Normal, Roles=["user"]
-                ),
-                "test-user-3": User(
-                    Id="test-user-3", State=UserState.Normal, Roles=["user"]
-                ),
-            }
-        }
+        users = {}
+        vehicles = {}
+        carparks = {}
+        for i in range(1, 4):
+            users[f"user-{i}"] = User(
+                Id=f"user-{i}",
+                State=UserState.Normal,
+                Roles=["user"],
+                Phone="0701234567",
+            )
+            vehicles[i] = Vehicle(
+                Id=i,
+                UserId=f"user-{i}",
+                DeviceId=f"xyz{i}",
+                LicensePlate="ABC10{i}",
+                Name=f"Car{i}",
+            )
+            carparks[i] = SelectedCarPark(
+                Id=i, UserId=f"user-{i}", CarParkId="1480 2007-03491"
+            )
+        self.__data = {User: users, Vehicle: vehicles, SelectedCarPark: carparks}
 
     def get_object(self, objClass: Any, objId: Union[int, str]) -> BaseModel:
         if objClass in self.__data:

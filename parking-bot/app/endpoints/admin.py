@@ -11,39 +11,39 @@ from app.services.user_manager import UserManager
 router = APIRouter()
 
 
-@router.get("/users", response_model=List[User], status_code=status.HTTP_200_OK)
+@router.get("/users", status_code=status.HTTP_200_OK)
 def list_users(
     um: UserManager = Depends(get_user_manager),
     offset: int = Query(0, title="List offset."),
     limit: int = Query(50, title="Max Number of results."),
     current_user: User = Depends(get_superuser),
-) -> Any:
+) -> List[User]:
     return um.list_users(offset=offset, limit=limit)
 
 
-@router.get("/user/{id}", response_model=User)
+@router.get("/user/{id}")
 def get_user(
     um: UserManager = Depends(get_user_manager),
     id: str = Path(title="User id."),
     current_user: User = Depends(get_superuser),
-) -> Any:
+) -> User:
     return um.get_user(id)
 
 
-@router.post("/user", response_model=User)
+@router.post("/user")
 def create_user(
     user_data: UserCreate = Body(
         title="User data", media_type=mtype.MEDIA_TYPE_CREATE_USER
     ),
     current_user: User = Depends(get_superuser),
-) -> Any:
+) -> User:
     if not user_data.Id:
         err.bad_request("No user id")
     # TODO Needs valid token to create new user and should except if user exists.
     raise NotImplementedError()
 
 
-@router.put("/user/{id}", response_model=User, status_code=status.HTTP_200_OK)
+@router.put("/user/{id}", status_code=status.HTTP_200_OK)
 def update_user(
     um: UserManager = Depends(get_user_manager),
     current_user: User = Depends(get_superuser),
@@ -51,8 +51,9 @@ def update_user(
     user_data: UserUpdate = Body(
         title="User data", media_type=mtype.MEDIA_TYPE_UPDATE_USER
     ),
-) -> Any:
-    return um.update_user(user=current_user, user_data=update_user)
+) -> User:
+    user = um.get_user(id)
+    return um.update_user(user, **user_data.model_dump(exclude_unset=True))
 
 
 @router.delete("/user/{id}", status_code=status.HTTP_200_OK)

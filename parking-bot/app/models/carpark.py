@@ -11,10 +11,10 @@ class SelectedCarPark(BaseModel):
     Id: Optional[int] = None
     UserId: str
     CarParkId: str
+    PhoneParkingCode: str
 
 
 class CarParkSelect(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
-    # CarParkId
-    Id: str
+    CarParkId: str

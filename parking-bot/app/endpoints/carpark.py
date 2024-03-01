@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, status
 
@@ -11,25 +11,23 @@ from app.services.userdata_manager import UserdataManager
 router = APIRouter()
 
 
-@router.get(
-    "/list", response_model=list[SelectedCarPark], status_code=status.HTTP_200_OK
-)
+@router.get("/list", status_code=status.HTTP_200_OK)
 def list_carparks(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-) -> Any:
+) -> List[SelectedCarPark]:
     return udata.list_carparks(current_user)
 
 
-@router.post("/add", status_code=status.HTTP_200_OK, response_model=SelectedCarPark)
+@router.post("/add", status_code=status.HTTP_200_OK)
 def add_carpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
     opendata: OpenDataParking = Depends(get_open_data_service),
     add: CarParkSelect = Body(title="Car park to add to selection."),
-) -> Any:
-    park = opendata.get_toll_parking(add.Id)  # check if exists
-    return udata.add_carpark(current_user, SelectedCarPark(CarParkId=park.Id))
+) -> SelectedCarPark:
+    carpark = opendata.get_toll_parking(add.CarParkId)  # check if exists
+    return udata.add_carpark(current_user, add.CarParkId, carpark.PhoneParkingCode)
 
 
 @router.delete("/delete/{id}", status_code=status.HTTP_200_OK)

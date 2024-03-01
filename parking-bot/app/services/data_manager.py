@@ -1,3 +1,5 @@
+from typing import Any
+
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
@@ -12,31 +14,33 @@ class _DataManager(object):
 
     _db: Database
     _fernet: Fernet
+    _shaded_keys: list[str]
 
-    def __init__(self, db, fernet):
+    def __init__(self, db, fernet, shaded_keys):
         self._db = db
         self._fernet = fernet
+        self._shaded_keys = shaded_keys
 
-    def _shade(self, obj: BaseModel, *shaded_keys) -> BaseModel:
-        """Fernet encrypt shaded_keys in the new copy of obj.
+    def _shade(self, obj: BaseModel | dict) -> dict[str, Any]:
+        """Fernet encrypt shaded keys in the new copy of obj.
 
         Args:
-            obj (BaseModel): Plain object
+            obj (BaseModel|dict): object to shade
 
         Returns:
-            BaseModel: Encrypted object
+            dict: Encrypted dict
         """
-
-        copy = obj.model_copy(deep=True)
-        for k in shaded_keys:
-            if hasattr(copy, k):
-                setattr(
-                    copy, k, self._fernet.encrypt(getattr(copy, k).encode()).decode()
-                )
+        if isinstance(obj, BaseModel):
+            copy = obj.model_dump(exclude_unset=True)
+        else:
+            copy = obj.copy()
+        for k, v in copy.items():
+            if k in self._shaded_keys:
+                copy[k] = self._fernet.encrypt(v.encode()).decode()
         return copy
 
-    def _unshade(self, obj: BaseModel, *shaded_keys) -> BaseModel:
-        """Fernet decrypt shaded_keys in the new copy of obj.
+    def _unshade(self, obj: BaseModel | dict) -> dict[str, Any]:
+        """Fernet decrypt shaded keys in the new copy of obj.
 
         Args:
             obj (BaseModel): Encrypted object
@@ -45,10 +49,26 @@ class _DataManager(object):
             BaseModel: Decrypted object
         """
 
-        copy = obj.model_copy(deep=True)
-        for k in shaded_keys:
-            if hasattr(copy, k):
-                setattr(
-                    copy, k, self._fernet.decrypt(getattr(copy, k).encode()).decode()
-                )
+        if isinstance(obj, BaseModel):
+            copy = obj.model_dump(exclude_unset=True)
+        else:
+            copy = obj.copy()
+        for k, v in copy.items():
+            if k in self._shaded_keys:
+                copy[k] = self._fernet.decrypt(v.encode()).decode()
         return copy
+
+    def _update(cls, target: BaseModel, **source) -> BaseModel:
+        """Update attributes from source if they exist.
+
+        Args:
+            target (BaseModel): Update target
+            source (dict): Update source
+
+        Returns:
+            BaseModel: Ref to target
+        """
+        for k, v in source.items():
+            if hasattr(target, k):
+                setattr(target, k, v)
+        return target
