@@ -16,17 +16,19 @@ class UserdataManager(_DataManager):
         self._db.get_objects_by_query(SelectedCarPark, [("UserId", "=", user.Id)])
 
     def add_carpark(
-        self, user: User, carpark_id: str, phone_code: str
+        self, user: User, CarParkId: str, PhoneParkingCode: str
     ) -> SelectedCarPark:
-        exists = self._db.get_objects_by_query(
-            SelectedCarPark, [("UserId", "=", user.Id), ("CarParkId", "=", carpark_id)]
+        exists = self._db.find_object(
+            SelectedCarPark,
+            filters=[("UserId", "=", user.Id), ("CarParkId", "=", CarParkId)],
         )
-        if exists != []:
+        if exists:
             err.conflict("Exists")
         carpark = SelectedCarPark(
-            UserId=user.Id, CarParkId=carpark_id, PhoneParkingCode=phone_code
+            UserId=user.Id, CarParkId=CarParkId, PhoneParkingCode=PhoneParkingCode
         )
-        return self._db.put_object(carpark)
+        self._db.put_object(carpark)
+        return carpark
 
     def remove_carpark(self, user: User, id: int) -> int:
         return self._db.delete_by_query(

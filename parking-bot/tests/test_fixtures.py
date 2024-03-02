@@ -28,8 +28,8 @@ def fernet(settings) -> Fernet:
 
 
 @pytest.fixture(scope="session")
-def database() -> Database:
-    return Database()
+def database(fernet) -> Database:
+    return Database(fernet)
 
 
 @pytest.fixture(scope="session")

@@ -1,4 +1,5 @@
 from typing import List
+
 from app.models.logs import ParkingOperationLog
 from app.models.user import User
 from app.services.data_manager import _DataManager
@@ -12,5 +13,7 @@ class ParkingLogManager(_DataManager):
     def log(self, operation: ParkingOperationLog) -> None:
         return self._db.put_object(operation)
 
-    def list(self, user:User) -> List[ParkingOperationLog]:
-        
+    def list(self, user: User) -> List[ParkingOperationLog]:
+        return self._db.get_objects_by_query(
+            ParkingOperationLog, filters=[("UserId", "=", user.Id)], order=["Timestamp"]
+        )

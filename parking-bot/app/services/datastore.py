@@ -172,6 +172,8 @@ class Database(object):
         """
         query = self.client.query(kind=objClass.__name__)
         query.keys_only()
+        if "order" in kwarks:
+            query.order = kwarks["order"]
         if filters:
             for filter in filters:
                 query = query.add_filter(*filter)
@@ -198,6 +200,8 @@ class Database(object):
         """
         query = self.client.query(kind=objClass.__name__)
         try:
+            if "order" in kwarks:
+                query.order = kwarks["order"]
             if filters:
                 for filter in filters:
                     query = query.add_filter(*filter)

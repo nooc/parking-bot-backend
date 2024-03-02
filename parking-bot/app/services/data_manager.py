@@ -55,7 +55,7 @@ class _DataManager(object):
             copy = obj.copy()
         for k, v in copy.items():
             if k in self._shaded_keys:
-                copy[k] = self._fernet.decrypt(v.encode()).decode()
+                copy[k] = self._fernet.decrypt(v).decode()
         return copy
 
     def _update(cls, target: BaseModel, **source) -> BaseModel:

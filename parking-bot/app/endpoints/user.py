@@ -29,8 +29,8 @@ def create_user(
     ),
 ) -> User:
     # TODO Validate jwt against 3rd party.
-    user_data.Id = jwt["sub"]
-    return um.create_user(user_data)
+    # user_data.Id = jwt["sub"]
+    return um.create_user(**user_data.model_dump())
 
 
 @router.put("", status_code=status.HTTP_200_OK)
