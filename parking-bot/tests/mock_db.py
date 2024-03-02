@@ -5,8 +5,10 @@ from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
 from app.models.carpark import SelectedCarPark
+from app.models.logs import ParkingOperationLog
 from app.models.user import User, UserState
 from app.models.vehicle import Vehicle
+from app.util.time import get_utc_millis
 
 type HandleType = BaseModel | tuple[type, Any]
 type FilterType = tuple[str, str, Any]
@@ -21,29 +23,28 @@ class Database:
 
     @classmethod
     def __pass_filter(cls, filters: list[FilterType], obj) -> bool:
-        for f in filters:
-            if hasattr(obj, f[0]):
-                v = getattr(obj, f[0])
-                match f[1]:
-                    case "=":
-                        return v == f[2]
-                    case "<=":
-                        return v <= f[2]
-                    case ">=":
-                        return v >= f[2]
-                    case "<":
-                        return v < f[2]
-                    case ">":
-                        return v > f[2]
-                    case "!=":
-                        return v != f[2]
-                    case "IN":
-                        return v in f[2]
-                    case "NOT_IN":
-                        return v not in f[2]
-                    case _:
-                        raise SyntaxError
-            else:
+        for fk, fop, fval in filters:
+            val = getattr(obj, fk)
+            match fop:
+                case "=":
+                    res = val == fval
+                case "<=":
+                    res = val <= fval
+                case ">=":
+                    res = val >= fval
+                case "<":
+                    res = val < fval
+                case ">":
+                    res = val > fval
+                case "!=":
+                    res = val != fval
+                case "IN":
+                    res = val in fval
+                case "NOT_IN":
+                    res = val not in fval
+                case _:
+                    raise SyntaxError
+            if not res:
                 return False
         return True
 
@@ -61,18 +62,19 @@ class Database:
         users = {}
         vehicles = {}
         carparks = {}
+        logs = {}
         for i in range(1, 4):
             users[f"user-{i}"] = User(
                 Id=f"user-{i}",
                 State=UserState.Normal,
                 Roles=["user"],
-                Phone=fernet.encrypt(b"0701234567"),
+                Phone=fernet.encrypt(b"0701234567").decode(),
             )
             vehicles[i] = Vehicle(
                 Id=i,
                 UserId=f"user-{i}",
                 DeviceId=f"xyz{i}",
-                LicensePlate=fernet.encrypt(b"ABC10{i}"),
+                LicensePlate=fernet.encrypt(b"ABC10{i}").decode(),
                 Name=f"Car{i}",
             )
             carparks[i] = SelectedCarPark(
@@ -81,7 +83,22 @@ class Database:
                 CarParkId="1480 2007-03491",
                 PhoneParkingCode="000",
             )
-        self.__data = {User: users, Vehicle: vehicles, SelectedCarPark: carparks}
+            logs[i] = ParkingOperationLog(
+                Id=i,
+                UserId=f"user-{i}",
+                DeviceId="device1",
+                LicensePlate=fernet.encrypt(b"ABC123").decode(),
+                Phone=fernet.encrypt(b"0700").decode(),
+                PhoneParkingCode="123",
+                Timestamp=get_utc_millis(),
+                Type="start-sms",
+            )
+        self.__data = {
+            User: users,
+            Vehicle: vehicles,
+            SelectedCarPark: carparks,
+            ParkingOperationLog: logs,
+        }
 
     def get_object(self, objClass: Any, objId: Union[int, str]) -> BaseModel:
         if objClass in self.__data:
@@ -163,9 +180,11 @@ class Database:
         return None
 
     def put_object(self, obj: BaseModel) -> None:
-        t = obj.model_json_schema()["properties"]["Id"]["type"]
+        types = [
+            e["type"] for e in obj.model_json_schema()["properties"]["Id"]["anyOf"]
+        ]
         if obj.Id == None:
-            if t == "integer":
+            if "integer" in types:
                 obj.Id = self.__gen_int_id()
             else:
                 obj.Id = self.__gen_str_id()

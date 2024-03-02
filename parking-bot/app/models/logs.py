@@ -2,14 +2,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-
-class ParkingOperationLogCreate(BaseModel):
-    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
-    PhoneParkingCode: str
-    DeviceId: str
-    LicensePlate: str
-    Phone: str
-    Type: Literal["start-sms", "stop-sms"]
+type ParkingOperationType = Literal["start-sms", "stop-sms"]
 
 
 class ParkingOperationLog(BaseModel):
@@ -22,5 +15,5 @@ class ParkingOperationLog(BaseModel):
     DeviceId: str
     LicensePlate: str
     Phone: str
-    Type: Literal["start-sms", "stop-sms"]
+    Type: ParkingOperationType
     Timestamp: int

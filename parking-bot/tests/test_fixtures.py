@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app import parkingbot
 from app.config import Settings
+from app.services.log_manager import ParkingLogManager
 from app.services.open_data_parking import OpenDataParking
 from app.services.user_manager import UserManager
 from app.services.userdata_manager import UserdataManager
@@ -53,3 +54,8 @@ def user_manager(database, fernet) -> UserManager:
 @pytest.fixture(scope="session")
 def userdata_manager(database, fernet) -> UserdataManager:
     return UserdataManager(database, fernet)
+
+
+@pytest.fixture(scope="session")
+def log_manager(database, fernet) -> ParkingLogManager:
+    return ParkingLogManager(database, fernet)
