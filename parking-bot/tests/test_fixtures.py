@@ -1,9 +1,11 @@
+import base64
+
 import httpx
 import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from mock_db import Database
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import SettingsConfigDict
 
 from app import parkingbot
 from app.config import Settings
@@ -19,13 +21,14 @@ class TestSettings(Settings):
 
 
 @pytest.fixture(scope="session")
-def settings() -> BaseSettings:
+def settings() -> TestSettings:
     return TestSettings()
 
 
 @pytest.fixture(scope="session")
 def fernet(settings) -> Fernet:
-    return Fernet(key=settings.FERNET_KEY)
+    bkey = base64.standard_b64decode(settings.FERNET_KEY)
+    return Fernet(key=bkey)
 
 
 @pytest.fixture(scope="session")

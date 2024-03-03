@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 
@@ -29,6 +30,7 @@ def __role_check(roles: list[str], *any_of) -> bool:
 
 
 def get_fernet() -> Fernet:
+    bkey = base64.standard_b64decode(conf.FERNET_KEY)
     return Fernet(key=conf.FERNET_KEY)
 
 
@@ -74,16 +76,16 @@ def get_userdata_manager(
 def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
     try:
         # decode auth0 jwt
+        bkey = base64.standard_b64decode(conf.FERNET_KEY)
         jwt_payload: dict = jwt.decode(
             jwt=credentials.credentials,
-            key=conf.AUTH0_CLIENT_SEC,
+            key=bkey,
             algorithms=["HS256"],
             verify=True,
         )
         return jwt_payload
-    except:
-        pass
-    err.unauthorized()
+    except Exception as ex:
+        err.unauthorized("Bad token.")
 
 
 def get_user(
@@ -95,7 +97,7 @@ def get_user(
         return um.get_user(jwt["sub"])
     except:
         pass
-    err.unauthorized()
+    err.unauthorized("User not found.")
 
 
 def get_superuser(

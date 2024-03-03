@@ -2,6 +2,7 @@ from app.models.carpark import SelectedCarPark
 from app.models.user import User, UserState
 from app.models.vehicle import Vehicle
 from app.services.data_manager import _DataManager
+from app.util import http_error as err
 
 
 class UserManager(_DataManager):
@@ -12,6 +13,8 @@ class UserManager(_DataManager):
         super().__init__(db, fernet, ["Phone"])
 
     def create_user(self, Id: str, Phone: str) -> User:
+        if self._db.find_object(User, Id) != None:
+            err.conflict("Exists.")
         plain_data = dict(Id=Id, Phone=Phone, **self._default_user_attr)
         data = self._shade(plain_data)
         new_user = User(**data)
