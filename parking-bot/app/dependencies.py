@@ -30,7 +30,6 @@ def __role_check(roles: list[str], *any_of) -> bool:
 
 
 def get_fernet() -> Fernet:
-    bkey = base64.standard_b64decode(conf.FERNET_KEY)
     return Fernet(key=conf.FERNET_KEY)
 
 
@@ -75,8 +74,7 @@ def get_userdata_manager(
 
 def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
     try:
-        # decode auth0 jwt
-        bkey = base64.standard_b64decode(conf.FERNET_KEY)
+        bkey = "some key"
         jwt_payload: dict = jwt.decode(
             jwt=credentials.credentials,
             key=bkey,

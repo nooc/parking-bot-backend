@@ -19,6 +19,8 @@ class TestSettings(Settings):
     __test__ = False
     model_config = SettingsConfigDict(env_file=".test.env")
 
+    TEST_HS256_KEY: str = b"F)5<{Ab*JaIH+I9L>b!i%VZkUBc`+hS-"
+
 
 @pytest.fixture(scope="session")
 def settings() -> TestSettings:
@@ -27,8 +29,7 @@ def settings() -> TestSettings:
 
 @pytest.fixture(scope="session")
 def fernet(settings) -> Fernet:
-    bkey = base64.standard_b64decode(settings.FERNET_KEY)
-    return Fernet(key=bkey)
+    return Fernet(key=settings.FERNET_KEY)
 
 
 @pytest.fixture(scope="session")
