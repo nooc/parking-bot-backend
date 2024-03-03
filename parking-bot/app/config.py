@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".prod.env")
 
     DEBUG: Optional[bool] = False
+    SWAGGER_UI: Optional[bool] = False
 
     PROJECT_NAME: Optional[str] = None
     PROJECT_DESC: Optional[str] = None
@@ -44,7 +45,7 @@ class Settings(BaseSettings):
     GBG_DATA_FREE_ITEM: str
     GBG_PARKING_KIOSK_INFO_URL: AnyHttpUrl
 
-    FERNET_KEY: bytes
+    FERNET_KEY: str
 
 
 conf = Settings()

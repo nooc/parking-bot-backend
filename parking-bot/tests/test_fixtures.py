@@ -1,11 +1,18 @@
+import base64
+
 import httpx
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from mock_db import Database
+from pydantic_settings import SettingsConfigDict
 
 from app import parkingbot
 from app.config import Settings
+from app.services.log_manager import ParkingLogManager
 from app.services.open_data_parking import OpenDataParking
+from app.services.user_manager import UserManager
+from app.services.userdata_manager import UserdataManager
 
 
 class TestSettings(Settings):
@@ -14,8 +21,19 @@ class TestSettings(Settings):
 
 
 @pytest.fixture(scope="session")
-def settings() -> BaseSettings:
+def settings() -> TestSettings:
     return TestSettings()
+
+
+@pytest.fixture(scope="session")
+def fernet(settings) -> Fernet:
+    bkey = base64.standard_b64decode(settings.FERNET_KEY)
+    return Fernet(key=bkey)
+
+
+@pytest.fixture(scope="session")
+def database(fernet) -> Database:
+    return Database(fernet)
 
 
 @pytest.fixture(scope="session")
@@ -29,3 +47,18 @@ def server(settings) -> TestClient:
 @pytest.fixture(scope="session")
 def open_data(settings) -> OpenDataParking:
     return OpenDataParking(settings, httpx.Client(http2=True))
+
+
+@pytest.fixture(scope="session")
+def user_manager(database, fernet) -> UserManager:
+    return UserManager(database, fernet)
+
+
+@pytest.fixture(scope="session")
+def userdata_manager(database, fernet) -> UserdataManager:
+    return UserdataManager(database, fernet)
+
+
+@pytest.fixture(scope="session")
+def log_manager(database, fernet) -> ParkingLogManager:
+    return ParkingLogManager(database, fernet)

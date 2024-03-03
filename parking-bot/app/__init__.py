@@ -12,22 +12,21 @@ from app.config import conf
 
 
 def create_app():
-    extra = {}
+    args = {
+        "title": conf.PROJECT_NAME,
+        "description": conf.PROJECT_DESC,
+        "openapi_url": f"{conf.API_ENDPOINT}/openapi.json",
+        "redoc_url": None,
+        "docs_url": "/docs" if conf.SWAGGER_UI else None,
+    }
     if conf.DEBUG:
         logging.getLogger().level = logging.INFO
     else:
         logging.getLogger().level = logging.DEBUG
-    app = FastAPI(
-        title=conf.PROJECT_NAME,
-        description=conf.PROJECT_DESC,
-        openapi_url=f"{conf.API_ENDPOINT}/openapi.json",
-        redoc_url=None,
-        **extra,
-    )
+    app = FastAPI(**args)
     app.add_middleware(HTTPSRedirectMiddleware)
     app.include_router(api_router, prefix=conf.API_ENDPOINT)
     app.mount("/static", StaticFiles(directory="static"), name="static")
-
     return app
 
 

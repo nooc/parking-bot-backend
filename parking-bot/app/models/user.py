@@ -15,18 +15,15 @@ class UserState(IntEnum):
 class UserCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
-    Id: Optional[str] = None
-    Phone: Optional[str] = None
-    State: Optional[int] = UserState.Normal
-    Roles: Optional[List[RoleType]] = ["user"]
+    Id: str
+    Phone: str
 
 
 # Update params
 class UserUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
-    State: Optional[int] = None
-    Roles: Optional[List[RoleType]] = None
+    Phone: Optional[str] = None
 
 
 # Db object
@@ -35,4 +32,5 @@ class User(BaseModel):
 
     Id: str
     State: UserState
+    Phone: str
     Roles: List[RoleType]
