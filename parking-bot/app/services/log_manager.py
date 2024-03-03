@@ -14,14 +14,14 @@ class ParkingLogManager(_DataManager):
     def log(
         self,
         user: User,
-        PhoneParkingCode: str,
+        ParkingCode: str,
         DeviceId: str,
         LicensePlate: str,
         Type: ParkingOperationType,
     ) -> None:
         log_data = dict(
             UserId=user.Id,
-            PhoneParkingCode=PhoneParkingCode,
+            ParkingCode=ParkingCode,
             DeviceId=DeviceId,
             LicensePlate=LicensePlate,
             Phone=user.Phone,
@@ -31,8 +31,16 @@ class ParkingLogManager(_DataManager):
         log_data = self._shade(log_data)
         self._db.put_object(ParkingOperationLog(**log_data))
 
-    def list(self, user: User) -> List[ParkingOperationLog]:
+    def list(self, user: User, **kwargs) -> List[ParkingOperationLog]:
+        filters = [("UserId", "=", user.Id)]
+        args = {}
+        if "from_time" in kwargs:
+            filters.append(("Timestamp", ">=", kwargs["from_time"]))
+        if "offset" in kwargs:
+            args["offset"] = kwargs["offset"]
+        if "limit" in kwargs:
+            args["limit"] = kwargs["limit"]
         ret = self._db.get_objects_by_query(
-            ParkingOperationLog, filters=[("UserId", "=", user.Id)], order=["Timestamp"]
+            ParkingOperationLog, filters=filters, order=["Timestamp"], **args
         )
-        return [ParkingOperationLog(**self._unshade(l)) for l in ret]
+        return [ParkingOperationLog(**self._unshade(log_item)) for log_item in ret]

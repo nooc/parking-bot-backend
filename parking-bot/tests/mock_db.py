@@ -4,7 +4,7 @@ from typing import Any, Union
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
-from app.models.carpark import SelectedCarPark
+from app.models.carpark import SelectedCarPark, SelectedKioskPark
 from app.models.logs import ParkingOperationLog
 from app.models.user import User, UserState
 from app.models.vehicle import Vehicle
@@ -62,6 +62,7 @@ class Database:
         users = {}
         vehicles = {}
         carparks = {}
+        kiosks = {}
         logs = {}
         for i in range(1, 4):
             users[f"user-{i}"] = User(
@@ -77,11 +78,18 @@ class Database:
                 LicensePlate=fernet.encrypt(b"ABC10{i}").decode(),
                 Name=f"Car{i}",
             )
-            carparks[i] = SelectedCarPark(
+            carparks[i] = (
+                SelectedCarPark(
+                    Id=i,
+                    UserId=f"user-{i}",
+                    CarParkId="1480 2007-03491",
+                    PhoneParkingCode="000",
+                ),
+            )
+            kiosks[i] = SelectedKioskPark(
                 Id=i,
                 UserId=f"user-{i}",
-                CarParkId="1480 2007-03491",
-                PhoneParkingCode="000",
+                KioskId="8c1efaf6-04f5-443f-a566-0cf2e4fbd1ed",
             )
             logs[i] = ParkingOperationLog(
                 Id=i,
@@ -98,6 +106,7 @@ class Database:
             Vehicle: vehicles,
             SelectedCarPark: carparks,
             ParkingOperationLog: logs,
+            SelectedKioskPark: kiosks,
         }
 
     def get_object(self, objClass: Any, objId: Union[int, str]) -> BaseModel:

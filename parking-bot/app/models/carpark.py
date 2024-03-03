@@ -14,7 +14,18 @@ class SelectedCarPark(BaseModel):
     PhoneParkingCode: str
 
 
-class CarParkSelect(BaseModel):
+class SelectedKioskPark(BaseModel):
+    """User carpark relation for storing user selelcted carparks."""
+
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
-    CarParkId: str
+    Id: Optional[int] = None
+    UserId: str
+    KioskId: str
+
+
+class CarParks(BaseModel):
+    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
+
+    Toll: list[SelectedCarPark]
+    Kiosk: list[SelectedKioskPark]

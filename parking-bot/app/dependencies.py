@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import conf
 from app.services.kiosk_parking import KioskParking
+from app.services.log_manager import ParkingLogManager
 
 from .models.user import User
 from .services.datastore import Database
@@ -58,8 +59,10 @@ def get_open_data_service() -> OpenDataParking:
         err.internal("Could not get open data service.")
 
 
-def get_kiosk_service() -> KioskParking:
-    return KioskParking(conf, __ht_client)
+def get_log_manager(
+    db=Depends(get_db), fernet=Depends(get_fernet)
+) -> ParkingLogManager:
+    return ParkingLogManager(db, fernet)
 
 
 def get_user_manager(db=Depends(get_db), fernet=Depends(get_fernet)) -> UserManager:
