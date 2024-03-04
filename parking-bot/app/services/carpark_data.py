@@ -1,7 +1,6 @@
 from urllib.parse import quote
 
 import httpx
-from fastapi import Depends
 from httpx import Client
 
 from app.config import Settings
@@ -10,7 +9,7 @@ from app.models.opendata.kiosk import KioskInfo
 from app.models.opendata.toll import TollCarPark
 
 
-class OpenDataParking:
+class CarParkDataSource:
     """Open parking data"""
 
     __client: Client

@@ -27,4 +27,5 @@ def test_delete_kiosk_with_success(user_manager, userdata_manager) -> None:
 
 def test_list_carparks(user_manager, userdata_manager):
     user = user_manager.get_user("user-2")
-    assert userdata_manager.list_carparks(user) != []
+    assert userdata_manager.list_toll_carparks(user) != []
+    assert userdata_manager.list_kiosk_carparks(user) != []

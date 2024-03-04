@@ -1,5 +1,3 @@
-import base64
-
 import httpx
 import pytest
 from cryptography.fernet import Fernet
@@ -9,8 +7,8 @@ from pydantic_settings import SettingsConfigDict
 
 from app import parkingbot
 from app.config import Settings
+from app.services.carpark_data import CarParkDataSource
 from app.services.log_manager import ParkingLogManager
-from app.services.open_data_parking import OpenDataParking
 from app.services.user_manager import UserManager
 from app.services.userdata_manager import UserdataManager
 
@@ -46,8 +44,8 @@ def server(settings) -> TestClient:
 
 
 @pytest.fixture(scope="session")
-def open_data(settings) -> OpenDataParking:
-    return OpenDataParking(settings, httpx.Client(http2=True))
+def parking_data(settings) -> CarParkDataSource:
+    return CarParkDataSource(settings, httpx.Client(http2=True))
 
 
 @pytest.fixture(scope="session")
