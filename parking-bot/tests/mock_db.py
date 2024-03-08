@@ -131,7 +131,10 @@ class Database:
     def verify_object_ids(
         self, objClass: Any, ids: list[Union[int, str]]
     ) -> list[Union[int, str]]:
-        raise NotImplementedError
+        if objClass.__name__ in self.__data:
+            table = self.__data[objClass.__name__]
+            return set(table.keys()).intersection(ids)
+        return []
 
     def get_keys_by_query(
         self, objClass: Any, filters: list[FilterType] = None, **kwarks

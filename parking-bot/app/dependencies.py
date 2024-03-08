@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 
@@ -76,16 +75,15 @@ def get_userdata_manager(
 
 def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
     try:
-        bkey = "some key"
         jwt_payload: dict = jwt.decode(
             jwt=credentials.credentials,
-            key=bkey,
+            key=conf.HS256_KEY,
             algorithms=["HS256"],
             verify=True,
         )
         return jwt_payload
     except Exception as ex:
-        err.unauthorized("Bad token.")
+        err.unauthorized(str(ex))
 
 
 def get_user(

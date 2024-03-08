@@ -22,7 +22,8 @@ class UserManager(_DataManager):
         return User(**plain_data)
 
     def get_user(self, id: str) -> User:
-        return User(**self._unshade(self._db.get_object(User, id)))
+        user = self._db.get_object(User, id)
+        return User(**self._unshade(user))
 
     def update_user(self, user: User, **update) -> User:
         # return this
