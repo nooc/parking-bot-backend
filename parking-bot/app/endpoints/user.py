@@ -7,7 +7,7 @@ import app.util.http_error as err
 from app.dependencies import get_db, get_jwt, get_user, get_user_manager
 from app.models.carpark import SelectedCarPark
 from app.models.response.userdata import UserData
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.user import User, UserRegister, UserUpdate
 from app.models.vehicle import Vehicle
 from app.services.datastore import Database
 from app.services.user_manager import UserManager
@@ -20,17 +20,17 @@ def get_user(current_user: User = Depends(get_user)) -> User:
     return current_user
 
 
-@router.post("", status_code=status.HTTP_200_OK)
-def create_user(
+@router.post("/register", status_code=status.HTTP_200_OK)
+def register_user(
     um: UserManager = Depends(get_user_manager),
     jwt: dict = Depends(get_jwt),
-    user_data: UserCreate = Body(
-        title="User create data", media_type=mtype.MEDIA_TYPE_CREATE_USER
+    user_data: UserRegister = Body(
+        title="Registration data", media_type=mtype.MEDIA_TYPE_REGISTER_USER
     ),
 ) -> User:
     # TODO Validate jwt against 3rd party.
-    user_data.Id = jwt["sub"]
-    return um.create_user(**user_data.model_dump())
+    # ...
+    return um.create_user(Id=jwt["sub"], **user_data.model_dump())
 
 
 @router.put("", status_code=status.HTTP_200_OK)

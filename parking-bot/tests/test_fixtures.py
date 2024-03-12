@@ -19,6 +19,7 @@ class TestSettings(Settings):
     model_config = SettingsConfigDict(env_file=".test.env")
 
     TEST_TOKEN: str
+    TEST_TOKEN_NO_USER: str
 
 
 class BearerAuth(httpx.Auth):
@@ -39,6 +40,11 @@ def settings() -> TestSettings:
 @pytest.fixture(scope="session")
 def test_auth(settings) -> httpx.Auth:
     return BearerAuth(token=settings.TEST_TOKEN)
+
+
+@pytest.fixture(scope="session")
+def test_auth_no_user(settings) -> httpx.Auth:
+    return BearerAuth(token=settings.TEST_TOKEN_NO_USER)
 
 
 @pytest.fixture(scope="session")
