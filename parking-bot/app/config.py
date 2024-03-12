@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     GBG_PARKING_KIOSK_INFO_URL: AnyHttpUrl
 
     FERNET_KEY: str
+    HS256_KEY: str
 
 
 conf = Settings()

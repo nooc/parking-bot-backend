@@ -2,15 +2,10 @@ from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
-from app.dependencies import get_open_data_service, get_user, get_userdata_manager
-from app.models.carpark import (
-    CarParks,
-    CarParkSelect,
-    SelectedCarPark,
-    SelectedKioskPark,
-)
+from app.dependencies import get_carpark_data, get_user, get_userdata_manager
+from app.models.carpark import CarParks, SelectedCarPark, SelectedKioskPark
 from app.models.user import User
-from app.services.open_data_parking import OpenDataParking
+from app.services.carpark_data import CarParkDataSource
 from app.services.userdata_manager import UserdataManager
 
 router = APIRouter()
@@ -31,10 +26,10 @@ def list_carparks(
 def add_carpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-    opendata: OpenDataParking = Depends(get_open_data_service),
-    add: id = Query(title="Car park to add to selection."),
+    carpark_dat: CarParkDataSource = Depends(get_carpark_data),
+    id: str = Query(title="Car park to add to selection."),
 ) -> SelectedCarPark:
-    carpark = opendata.get_toll_parking(id)  # check if exists
+    carpark = carpark_dat.get_toll_parking(id)  # check if exists
     return udata.add_carpark(current_user, carpark.Id, carpark.PhoneParkingCode)
 
 
@@ -51,11 +46,11 @@ def delete_carpark(
 def add_kiosk(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-    opendata: OpenDataParking = Depends(get_open_data_service),
-    add: id = Query(title="Kiosk park to add to selection."),
+    carpark_data: CarParkDataSource = Depends(get_carpark_data),
+    id: str = Query(title="Kiosk park to add to selection."),
 ) -> SelectedKioskPark:
-    kiosk = opendata.get_kiosk_parking(id)  # check if exists
-    return udata.add_kiosk(current_user, kiosk.Id)
+    kiosk = carpark_data.get_kiosk_info(id)  # check if exists
+    return udata.add_kiosk(current_user, kiosk.externalId)
 
 
 @router.delete("/kiosk/delete/{id}", status_code=status.HTTP_200_OK)

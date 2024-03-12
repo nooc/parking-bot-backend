@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 import app.endpoints.media_types as mtype
 import app.util.http_error as err
 from app.dependencies import get_superuser, get_user_manager
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.user import User, UserRegister, UserUpdate
 from app.services.user_manager import UserManager
 
 router = APIRouter()
@@ -32,8 +32,8 @@ def get_user(
 
 @router.post("/user")
 def create_user(
-    user_data: UserCreate = Body(
-        title="User data", media_type=mtype.MEDIA_TYPE_CREATE_USER
+    user_data: UserRegister = Body(
+        title="User data", media_type=mtype.MEDIA_TYPE_REGISTER_USER
     ),
     current_user: User = Depends(get_superuser),
 ) -> User:

@@ -1,3 +1,4 @@
+import json
 import uuid
 from typing import Any, Union
 
@@ -16,13 +17,15 @@ type FilterType = tuple[str, str, Any]
 
 # TODO fix filtering. test all filters
 class Database:
-    __data: dict[type, dict[Any, BaseModel]]
+    __data: dict[str, dict[Any, BaseModel]]
     __INT_ID = 1000
 
     _fernet: Fernet
 
     @classmethod
     def __pass_filter(cls, filters: list[FilterType], obj) -> bool:
+        if not filters:
+            return True
         for fk, fop, fval in filters:
             val = getattr(obj, fk)
             match fop:
@@ -59,59 +62,53 @@ class Database:
 
     def __init__(self, fernet: Fernet) -> None:
         self._fernet = fernet
-        users = {}
-        vehicles = {}
-        carparks = {}
-        kiosks = {}
-        logs = {}
+        data = {
+            User.__name__: {},
+            Vehicle.__name__: {},
+            SelectedCarPark.__name__: {},
+            SelectedKioskPark.__name__: {},
+            ParkingOperationLog.__name__: {},
+        }
         for i in range(1, 4):
-            users[f"user-{i}"] = User(
+            data[User.__name__][f"user-{i}"] = User(
                 Id=f"user-{i}",
                 State=UserState.Normal,
                 Roles=["user"],
                 Phone=fernet.encrypt(b"0701234567").decode(),
             )
-            vehicles[i] = Vehicle(
+            data[Vehicle.__name__][i] = Vehicle(
                 Id=i,
                 UserId=f"user-{i}",
                 DeviceId=f"xyz{i}",
                 LicensePlate=fernet.encrypt(b"ABC10{i}").decode(),
                 Name=f"Car{i}",
             )
-            carparks[i] = (
-                SelectedCarPark(
-                    Id=i,
-                    UserId=f"user-{i}",
-                    CarParkId="1480 2007-03491",
-                    PhoneParkingCode="000",
-                ),
+            data[SelectedCarPark.__name__][i] = SelectedCarPark(
+                Id=i,
+                UserId=f"user-{i}",
+                CarParkId="1480 2007-03491",
+                PhoneParkingCode="000",
             )
-            kiosks[i] = SelectedKioskPark(
+            data[SelectedKioskPark.__name__][i] = SelectedKioskPark(
                 Id=i,
                 UserId=f"user-{i}",
                 KioskId="8c1efaf6-04f5-443f-a566-0cf2e4fbd1ed",
             )
-            logs[i] = ParkingOperationLog(
+            data[ParkingOperationLog.__name__][i] = ParkingOperationLog(
                 Id=i,
                 UserId=f"user-{i}",
                 DeviceId="device1",
                 LicensePlate=fernet.encrypt(b"ABC123").decode(),
                 Phone=fernet.encrypt(b"0700").decode(),
-                PhoneParkingCode="123",
+                ParkingCode="123",
                 Timestamp=get_utc_millis(),
                 Type="start-sms",
             )
-        self.__data = {
-            User: users,
-            Vehicle: vehicles,
-            SelectedCarPark: carparks,
-            ParkingOperationLog: logs,
-            SelectedKioskPark: kiosks,
-        }
+        self.__data = data
 
     def get_object(self, objClass: Any, objId: Union[int, str]) -> BaseModel:
-        if objClass in self.__data:
-            table = self.__data[objClass]
+        if objClass.__name__ in self.__data:
+            table = self.__data[objClass.__name__]
             if objId in table:
                 return table[objId]
         raise FileNotFoundError
@@ -120,9 +117,9 @@ class Database:
         self, objClass: Any, ids: list[Union[int, str]]
     ) -> list[BaseModel]:
 
-        if objClass in self.__data:
+        if objClass.__name__ in self.__data:
             res = []
-            table = self.__data[objClass]
+            table = self.__data[objClass.__name__]
             for o in table.values():
                 if o.Id in ids:
                     res.append(o)
@@ -134,34 +131,24 @@ class Database:
     def verify_object_ids(
         self, objClass: Any, ids: list[Union[int, str]]
     ) -> list[Union[int, str]]:
-        raise NotImplementedError
+        if objClass.__name__ in self.__data:
+            table = self.__data[objClass.__name__]
+            return set(table.keys()).intersection(ids)
+        return []
 
     def get_keys_by_query(
         self, objClass: Any, filters: list[FilterType] = None, **kwarks
     ) -> list[Union[int, str]]:
         res = []
-        if objClass in self.__data:
-            table = self.__data[objClass]
-            for o in table.values():
-                if filters and not self.__pass_filter(filters, o):
-                    continue
-                res.append(o.Id)
-            if "order" in kwarks:
-                orders = kwarks["order"]
-                if orders != []:
-                    sort_key: str = orders[0]
-                    if sort_key.startswith("-"):
-                        res.sort(key=lambda e: getattr(e, sort_key[1:]), reverse=True)
-                    else:
-                        res.sort(key=lambda e: getattr(e, sort_key))
-        return res
+        res = self.get_objects_by_query(objClass, filters=filters, **kwarks)
+        return [o.Id for o in res]
 
     def get_objects_by_query(
         self, objClass: Any, filters: list[FilterType] = None, **kwarks
     ) -> list[BaseModel]:
         res = []
-        if objClass in self.__data:
-            table = self.__data[objClass]
+        if objClass.__name__ in self.__data:
+            table = self.__data[objClass.__name__]
             for o in table.values():
                 if filters and not self.__pass_filter(filters, o):
                     continue
@@ -177,8 +164,8 @@ class Database:
         return res
 
     def find_object(self, objClass: Any, filters: list[FilterType] = None) -> BaseModel:
-        if objClass in self.__data:
-            table = self.__data[objClass]
+        if objClass.__name__ in self.__data:
+            table = self.__data[objClass.__name__]
             for o in table.values():
                 if filters:
                     if not self.__pass_filter(filters, o):
@@ -189,21 +176,26 @@ class Database:
         return None
 
     def put_object(self, obj: BaseModel) -> None:
-        types = [
-            e["type"] for e in obj.model_json_schema()["properties"]["Id"]["anyOf"]
-        ]
         if obj.Id == None:
-            if "integer" in types:
+            id_types = obj.model_json_schema()["properties"]["Id"]
+            if "anyOf" in id_types:
+                id_types = [t["type"] for t in id_types["anyOf"]]
+            if "integer" in id_types:
                 obj.Id = self.__gen_int_id()
-            else:
+            elif "string" in id_types:
                 obj.Id = self.__gen_str_id()
-        self.__data[type(obj)][obj.Id] = obj
+            else:
+                raise KeyError
+        self.__data[type(obj).__name__][obj.Id] = obj
 
     def delete_object(self, handle: HandleType) -> None:
         if isinstance(handle, tuple):
-            del self.__data[handle[0]][handle[1]]
+            obj_type, obj_id = handle
+            del self.__data[obj_type.__name__][obj_id]
         elif isinstance(handle, BaseModel):
-            del self.__data[type(handle)][handle.Id]
+            del self.__data[type(handle).__name__][handle.Id]
+        else:
+            raise KeyError
 
     def delete_objects(self, handles: list[HandleType]) -> None:
         for h in handles:
@@ -213,10 +205,12 @@ class Database:
         self, objClass: Any, filters: list[FilterType] = None, **kwarks
     ) -> int:
         res = 0
-        keys = self.get_keys_by_query(objClass, filters)
-        for k in keys:
-            del self.__data[objClass][k]
-            res += 1
+        if objClass.__name__ in self.__data:
+            objList = list(self.__data[objClass.__name__].values())
+            for obj in objList:
+                if self.__pass_filter(filters=filters, obj=obj):
+                    del self.__data[objClass.__name__][obj.Id]
+                    res += 1
         return res
 
     def is_empty(self, objClass: Any, filters: list[FilterType] = None) -> bool:

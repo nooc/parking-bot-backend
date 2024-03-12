@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 
@@ -9,12 +8,11 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import conf
-from app.services.kiosk_parking import KioskParking
 from app.services.log_manager import ParkingLogManager
 
 from .models.user import User
+from .services.carpark_data import CarParkDataSource
 from .services.datastore import Database
-from .services.open_data_parking import OpenDataParking
 from .services.user_manager import UserManager
 from .services.userdata_manager import UserdataManager
 from .util import http_error as err
@@ -51,9 +49,9 @@ def get_db(cred: dict = Depends(get_cred_info)) -> Database:
     return db
 
 
-def get_open_data_service() -> OpenDataParking:
+def get_carpark_data() -> CarParkDataSource:
     try:
-        return OpenDataParking(conf, __ht_client)
+        return CarParkDataSource(conf, __ht_client)
     except Exception as ex:
         logging.error(ex)
         err.internal("Could not get open data service.")
@@ -77,16 +75,15 @@ def get_userdata_manager(
 
 def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
     try:
-        bkey = "some key"
         jwt_payload: dict = jwt.decode(
             jwt=credentials.credentials,
-            key=bkey,
+            key=conf.HS256_KEY,
             algorithms=["HS256"],
             verify=True,
         )
         return jwt_payload
     except Exception as ex:
-        err.unauthorized("Bad token.")
+        err.unauthorized(str(ex))
 
 
 def get_user(

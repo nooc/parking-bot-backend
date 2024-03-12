@@ -12,10 +12,9 @@ class UserState(IntEnum):
 
 
 # Create params
-class UserCreate(BaseModel):
+class UserRegister(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
-    Id: str
     Phone: str
 
 

@@ -7,7 +7,7 @@ def test_log_success(log_manager):
     user = User(Id="user-test-log", State=0, Phone="0700", Roles=["user"])
     log_manager.log(
         user=user,
-        PhoneParkingCode="123",
+        ParkingCode="123",
         DeviceId="123",
         LicensePlate="abc123",
         Type="start-sms",

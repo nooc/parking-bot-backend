@@ -13,7 +13,7 @@ class UserManager(_DataManager):
         super().__init__(db, fernet, ["Phone"])
 
     def create_user(self, Id: str, Phone: str) -> User:
-        if self._db.find_object(User, Id) != None:
+        if self._db.find_object(User, [("Id", "=", Id)]) != None:
             err.conflict("Exists.")
         plain_data = dict(Id=Id, Phone=Phone, **self._default_user_attr)
         data = self._shade(plain_data)
@@ -22,7 +22,8 @@ class UserManager(_DataManager):
         return User(**plain_data)
 
     def get_user(self, id: str) -> User:
-        return User(**self._unshade(self._db.get_object(User, id)))
+        user = self._db.get_object(User, id)
+        return User(**self._unshade(user))
 
     def update_user(self, user: User, **update) -> User:
         # return this

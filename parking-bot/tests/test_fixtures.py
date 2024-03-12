@@ -1,5 +1,3 @@
-import base64
-
 import httpx
 import pytest
 from cryptography.fernet import Fernet
@@ -9,8 +7,9 @@ from pydantic_settings import SettingsConfigDict
 
 from app import parkingbot
 from app.config import Settings
+from app.dependencies import get_db
+from app.services.carpark_data import CarParkDataSource
 from app.services.log_manager import ParkingLogManager
-from app.services.open_data_parking import OpenDataParking
 from app.services.user_manager import UserManager
 from app.services.userdata_manager import UserdataManager
 
@@ -19,12 +18,33 @@ class TestSettings(Settings):
     __test__ = False
     model_config = SettingsConfigDict(env_file=".test.env")
 
-    TEST_HS256_KEY: str = b"F)5<{Ab*JaIH+I9L>b!i%VZkUBc`+hS-"
+    TEST_TOKEN: str
+    TEST_TOKEN_NO_USER: str
+
+
+class BearerAuth(httpx.Auth):
+    def __init__(self, token) -> None:
+        super().__init__()
+        self._token = token
+
+    def auth_flow(self, request: httpx.Request):
+        request.headers["Authorization"] = f"Bearer {self._token}"
+        yield request
 
 
 @pytest.fixture(scope="session")
 def settings() -> TestSettings:
     return TestSettings()
+
+
+@pytest.fixture(scope="session")
+def test_auth(settings) -> httpx.Auth:
+    return BearerAuth(token=settings.TEST_TOKEN)
+
+
+@pytest.fixture(scope="session")
+def test_auth_no_user(settings) -> httpx.Auth:
+    return BearerAuth(token=settings.TEST_TOKEN_NO_USER)
 
 
 @pytest.fixture(scope="session")
@@ -38,6 +58,15 @@ def database(fernet) -> Database:
 
 
 @pytest.fixture(scope="session")
+def server_with_mock_db(settings, database) -> TestClient:
+    parkingbot.dependency_overrides[get_db] = lambda: database
+    return TestClient(
+        app=parkingbot,
+        base_url=f"https://127.0.0.1:8000{settings.API_ENDPOINT}",
+    )
+
+
+@pytest.fixture(scope="session")
 def server(settings) -> TestClient:
     return TestClient(
         app=parkingbot,
@@ -46,8 +75,8 @@ def server(settings) -> TestClient:
 
 
 @pytest.fixture(scope="session")
-def open_data(settings) -> OpenDataParking:
-    return OpenDataParking(settings, httpx.Client(http2=True))
+def parking_data(settings) -> CarParkDataSource:
+    return CarParkDataSource(settings, httpx.Client(http2=True))
 
 
 @pytest.fixture(scope="session")
