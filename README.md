@@ -1,10 +1,10 @@
 # ParkingBot Backend
 
-![App Icon](media/appicon.png)
+![App Icon](https://github.com/nooc/parking-bot-doc/blob/main/media/appicon.png)
 
 ## About
 
-This is the backend for the ParkingBot app and runs on Google App Engine for Python.
+This is the backend for the ParkingBot [app](https://github.com/nooc/parking-bot-client) and runs on Google App Engine for Python.
 
 ## Getting started
 

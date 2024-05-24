@@ -7,7 +7,7 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import api_router
+from app.routing import api_router
 from app.config import conf
 
 
