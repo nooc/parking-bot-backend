@@ -21,6 +21,19 @@ __security = HTTPBearer(auto_error=True)  # raises forbidden/401 if no token
 __ht_client = httpx.Client(http2=True)
 
 
+def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
+    try:
+        jwt_payload: dict = jwt.decode(
+            jwt=credentials.credentials,
+            key=conf.HS256_KEY,
+            algorithms=["HS256"],
+            verify=True,
+        )
+        return jwt_payload
+    except Exception as ex:
+        err.unauthorized(str(ex))
+
+
 def __role_check(roles: list[str], *any_of) -> bool:
     for role in roles:
         if role in any_of:
@@ -28,8 +41,12 @@ def __role_check(roles: list[str], *any_of) -> bool:
     return False
 
 
-def get_fernet() -> Fernet:
-    return Fernet(key=conf.FERNET_KEY)
+def get_fernet(jwt: dict = Depends(get_jwt)) -> Fernet:
+    try:
+        jwt["sub"]
+        return Fernet(key=jwt["sub"])
+    except Exception as ex:
+        err.bad_request(str(ex))
 
 
 def get_cred_info() -> dict:
@@ -71,19 +88,6 @@ def get_userdata_manager(
     db: Database = Depends(get_db), fernet=Depends(get_fernet)
 ) -> UserdataManager:
     return UserdataManager(db, fernet)
-
-
-def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
-    try:
-        jwt_payload: dict = jwt.decode(
-            jwt=credentials.credentials,
-            key=conf.HS256_KEY,
-            algorithms=["HS256"],
-            verify=True,
-        )
-        return jwt_payload
-    except Exception as ex:
-        err.unauthorized(str(ex))
 
 
 def get_user(
