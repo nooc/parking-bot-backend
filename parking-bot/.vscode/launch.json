@@ -17,6 +17,12 @@
                 "--ssl-certfile", "localhost+2.pem"
             ],
             "jinja": true
+        },
+        {
+            "name": "Gen Test Tokens",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "tools.gen-tokens"
         }
     ]
 }
