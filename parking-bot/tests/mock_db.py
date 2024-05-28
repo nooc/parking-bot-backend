@@ -1,11 +1,10 @@
-import json
 import uuid
 from typing import Any, Union
 
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
-from app.models.carpark import SelectedCarPark, SelectedKioskPark
+from app.models.carpark import SelectedCarParkDb, SelectedKioskParkDb
 from app.models.logs import ParkingOperationLog
 from app.models.user import User, UserState
 from app.models.vehicle import Vehicle
@@ -65,38 +64,38 @@ class Database:
         data = {
             User.__name__: {},
             Vehicle.__name__: {},
-            SelectedCarPark.__name__: {},
-            SelectedKioskPark.__name__: {},
+            SelectedCarParkDb.__name__: {},
+            SelectedKioskParkDb.__name__: {},
             ParkingOperationLog.__name__: {},
         }
         for i in range(1, 4):
-            data[User.__name__][f"user-{i}"] = User(
-                Id=f"user-{i}",
+            data[User.__name__][f"0a0a0a0a0a0a0a0{i}"] = User(
+                Id=f"0a0a0a0a0a0a0a0{i}",
                 State=UserState.Normal,
                 Roles=["user"],
                 Phone=fernet.encrypt(b"0701234567").decode(),
             )
             data[Vehicle.__name__][i] = Vehicle(
                 Id=i,
-                UserId=f"user-{i}",
+                UserId=f"0a0a0a0a0a0a0a0{i}",
                 DeviceId=f"xyz{i}",
                 LicensePlate=fernet.encrypt(b"ABC10{i}").decode(),
                 Name=f"Car{i}",
             )
-            data[SelectedCarPark.__name__][i] = SelectedCarPark(
+            data[SelectedCarParkDb.__name__][i] = SelectedCarParkDb(
                 Id=i,
-                UserId=f"user-{i}",
+                UserId=f"0a0a0a0a0a0a0a0{i}",
                 CarParkId="1480 2007-03491",
                 PhoneParkingCode="000",
             )
-            data[SelectedKioskPark.__name__][i] = SelectedKioskPark(
+            data[SelectedKioskParkDb.__name__][i] = SelectedKioskParkDb(
                 Id=i,
-                UserId=f"user-{i}",
+                UserId=f"0a0a0a0a0a0a0a0{i}",
                 KioskId="8c1efaf6-04f5-443f-a566-0cf2e4fbd1ed",
             )
             data[ParkingOperationLog.__name__][i] = ParkingOperationLog(
                 Id=i,
-                UserId=f"user-{i}",
+                UserId=f"0a0a0a0a0a0a0a0{i}",
                 DeviceId="device1",
                 LicensePlate=fernet.encrypt(b"ABC123").decode(),
                 Phone=fernet.encrypt(b"0700").decode(),

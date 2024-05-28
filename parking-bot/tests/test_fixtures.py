@@ -5,21 +5,25 @@ from fastapi.testclient import TestClient
 from mock_db import Database
 from pydantic_settings import SettingsConfigDict
 
+import app.config
 from app import parkingbot
-from app.config import Settings
-from app.dependencies import get_db
+from app.dependencies import get_db, get_fernet
 from app.services.carpark_data import CarParkDataSource
 from app.services.log_manager import ParkingLogManager
 from app.services.user_manager import UserManager
 from app.services.userdata_manager import UserdataManager
 
 
-class TestSettings(Settings):
+class TestSettings(app.config.Settings):
     __test__ = False
-    model_config = SettingsConfigDict(env_file=".test.env")
+    model_config = SettingsConfigDict(
+        yaml_file="env.test.yml", yaml_file_encoding="utf-8", validate_default=False
+    )
 
+    HS256_KEY: str
+    TEST_TOKEN_INIT: str
     TEST_TOKEN: str
-    TEST_TOKEN_NO_USER: str
+    TEST_TOKEN_INVALID: str
 
 
 class BearerAuth(httpx.Auth):
@@ -38,18 +42,23 @@ def settings() -> TestSettings:
 
 
 @pytest.fixture(scope="session")
+def test_auth_init(settings) -> httpx.Auth:
+    return BearerAuth(token=settings.TEST_TOKEN_INIT)
+
+
+@pytest.fixture(scope="session")
 def test_auth(settings) -> httpx.Auth:
     return BearerAuth(token=settings.TEST_TOKEN)
 
 
 @pytest.fixture(scope="session")
-def test_auth_no_user(settings) -> httpx.Auth:
-    return BearerAuth(token=settings.TEST_TOKEN_NO_USER)
+def test_auth_invalid(settings) -> httpx.Auth:
+    return BearerAuth(token=settings.TEST_TOKEN_INVALID)
 
 
 @pytest.fixture(scope="session")
-def fernet(settings) -> Fernet:
-    return Fernet(key=settings.FERNET_KEY)
+def fernet() -> Fernet:
+    return Fernet(key=Fernet.generate_key())
 
 
 @pytest.fixture(scope="session")
@@ -58,7 +67,8 @@ def database(fernet) -> Database:
 
 
 @pytest.fixture(scope="session")
-def server_with_mock_db(settings, database) -> TestClient:
+def server_with_mock_db(settings, database, fernet) -> TestClient:
+    parkingbot.dependency_overrides[get_fernet] = lambda: fernet
     parkingbot.dependency_overrides[get_db] = lambda: database
     return TestClient(
         app=parkingbot,
