@@ -17,8 +17,14 @@ def list_carparks(
     current_user: User = Depends(get_user),
 ) -> CarParks:
     return CarParks(
-        Toll=udata.list_toll_carparks(current_user),
-        Kiosk=udata.list_kiosk_carparks(current_user),
+        Toll=[
+            SelectedCarPark(**tp.model_dump())
+            for tp in udata.list_toll_carparks(current_user)
+        ],
+        Kiosk=[
+            SelectedKioskPark(**kp.model_dump())
+            for kp in udata.list_kiosk_carparks(current_user)
+        ],
     )
 
 
@@ -30,7 +36,11 @@ def add_carpark(
     id: str = Query(title="Car park to add to selection."),
 ) -> SelectedCarPark:
     carpark = carpark_dat.get_toll_parking(id)  # check if exists
-    return udata.add_carpark(current_user, carpark.Id, carpark.PhoneParkingCode)
+    return SelectedCarPark(
+        **udata.add_carpark(
+            current_user, carpark.Id, carpark.PhoneParkingCode
+        ).model_dump()
+    )
 
 
 @router.delete("/delete/{id}", status_code=status.HTTP_200_OK)
@@ -50,7 +60,9 @@ def add_kiosk(
     id: str = Query(title="Kiosk park to add to selection."),
 ) -> SelectedKioskPark:
     kiosk = carpark_data.get_kiosk_info(id)  # check if exists
-    return udata.add_kiosk(current_user, kiosk.externalId)
+    return SelectedKioskPark(
+        **udata.add_kiosk(current_user, kiosk.externalId).model_dump()
+    )
 
 
 @router.delete("/kiosk/delete/{id}", status_code=status.HTTP_200_OK)

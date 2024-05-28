@@ -11,13 +11,6 @@ class UserState(IntEnum):
     Disabled = 1
 
 
-# Create params
-class UserRegister(BaseModel):
-    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
-
-    Phone: str
-
-
 # Update params
 class UserUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
@@ -31,5 +24,5 @@ class User(BaseModel):
 
     Id: str
     State: UserState
-    Phone: str
+    Phone: Optional[str] = None
     Roles: List[RoleType]

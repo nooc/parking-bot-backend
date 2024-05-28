@@ -2,10 +2,10 @@ from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
-import app.endpoints.media_types as mtype
 import app.util.http_error as err
 from app.dependencies import get_superuser, get_user_manager
-from app.models.user import User, UserRegister, UserUpdate
+from app.endpoints.media_types import MEDIA_TYPE_JSON
+from app.models.user import User, UserUpdate
 from app.services.user_manager import UserManager
 
 router = APIRouter()
@@ -32,14 +32,11 @@ def get_user(
 
 @router.post("/user")
 def create_user(
-    user_data: UserRegister = Body(
-        title="User data", media_type=mtype.MEDIA_TYPE_REGISTER_USER
-    ),
+    identifier: str = Query(title="Identifier"),
     current_user: User = Depends(get_superuser),
 ) -> User:
-    if not user_data.Id:
+    if not identifier:
         err.bad_request("No user id")
-    # TODO Needs valid token to create new user and should except if user exists.
     raise NotImplementedError()
 
 
@@ -48,9 +45,7 @@ def update_user(
     um: UserManager = Depends(get_user_manager),
     current_user: User = Depends(get_superuser),
     id: str = Path(title="User id"),
-    user_data: UserUpdate = Body(
-        title="User data", media_type=mtype.MEDIA_TYPE_UPDATE_USER
-    ),
+    user_data: UserUpdate = Body(title="User data", media_type=MEDIA_TYPE_JSON),
 ) -> User:
     user = um.get_user(id)
     return um.update_user(user, **user_data.model_dump(exclude_unset=True))

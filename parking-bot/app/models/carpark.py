@@ -9,7 +9,6 @@ class SelectedCarPark(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Id: Optional[int] = None
-    UserId: str
     CarParkId: str
     PhoneParkingCode: str
 
@@ -18,10 +17,16 @@ class SelectedKioskPark(BaseModel):
     """User carpark relation for storing user selelcted carparks."""
 
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
-
     Id: Optional[int] = None
-    UserId: str
     KioskId: str
+
+
+class SelectedCarParkDb(SelectedCarPark):
+    UserId: str
+
+
+class SelectedKioskParkDb(SelectedKioskPark):
+    UserId: str
 
 
 class CarParks(BaseModel):
