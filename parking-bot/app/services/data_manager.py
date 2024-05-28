@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from cryptography.fernet import Fernet
@@ -55,7 +56,11 @@ class _DataManager(object):
             copy = obj.copy()
         for k, v in copy.items():
             if k in self._shaded_keys:
-                copy[k] = self._fernet.decrypt(v).decode()
+                try:
+                    copy[k] = self._fernet.decrypt(v).decode()
+                except Exception as ex:
+                    logging.warning(str(ex))
+                    copy[k] = None
         return copy
 
     def _update(cls, target: BaseModel, **source) -> BaseModel:

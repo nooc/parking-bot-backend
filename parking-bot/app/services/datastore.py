@@ -92,7 +92,7 @@ class Database(object):
             objId (int): Item id.
 
         Returns:
-            BaseModel: Instance of object.
+            BaseModel: Instance of object or None.
 
         Raises: HTTPException
         """

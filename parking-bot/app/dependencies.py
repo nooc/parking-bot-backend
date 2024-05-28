@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import json
 import logging
 
@@ -27,11 +29,15 @@ def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> 
             jwt=credentials.credentials,
             key=conf.HS256_KEY,
             algorithms=["HS256"],
+            issuer=conf.JWT_ISSUER,
             verify=True,
         )
-        return jwt_payload
+        if "sub" in jwt_payload or "identifier" in jwt_payload:
+            return jwt_payload
+        msg = "Invalid claims"
     except Exception as ex:
-        err.unauthorized(str(ex))
+        msg = str(ex)
+    err.unauthorized(msg)
 
 
 def __role_check(roles: list[str], *any_of) -> bool:
@@ -41,10 +47,21 @@ def __role_check(roles: list[str], *any_of) -> bool:
     return False
 
 
+def __to_fernet_key(source: str) -> bytes:
+    h = hashlib.new("sha256")
+    h.update(source.encode())
+    return base64.urlsafe_b64encode(h.digest())
+
+
 def get_fernet(jwt: dict = Depends(get_jwt)) -> Fernet:
     try:
-        jwt["sub"]
-        return Fernet(key=jwt["sub"])
+        if "sub" in jwt:
+            key = __to_fernet_key(jwt["sub"])
+        elif "identifier" in jwt:
+            key = __to_fernet_key(jwt["identifier"])
+        else:
+            err.bad_request("missing identity")
+        return Fernet(key=key)
     except Exception as ex:
         err.bad_request(str(ex))
 
@@ -97,9 +114,8 @@ def get_user(
     try:
         # get user from token
         return um.get_user(jwt["sub"])
-    except:
-        pass
-    err.unauthorized("User not found.")
+    except Exception as ex:
+        err.not_found(str(ex))
 
 
 def get_superuser(

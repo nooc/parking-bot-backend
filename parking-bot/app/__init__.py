@@ -7,15 +7,15 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.routing import api_router
 from app.config import conf
+from app.routing import api_router
 
 
 def create_app():
     args = {
         "title": conf.PROJECT_NAME,
         "description": conf.PROJECT_DESC,
-        "openapi_url": f"{conf.API_ENDPOINT}/openapi.json",
+        "openapi_url": f"/openapi/openapi.json",
         "redoc_url": None,
         "docs_url": "/docs" if conf.SWAGGER_UI else None,
     }
