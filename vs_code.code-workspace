@@ -3,9 +3,6 @@
 		{
 			"name": "GAE service",
 			"path": "parking-bot"
-		},
-		{
-			"path": "tools"
 		}
 	],
 	"settings": {
@@ -15,7 +12,8 @@
 		"files.exclude": {
 			"**/__pycache__": true,
 			"**/bin": true,
-			"**/obj": true
+			"**/obj": true,
+			"**/.venv": true,
 		},
 	}
 }
