@@ -2,5 +2,5 @@
 # git-crypt
 #
 parking-bot/parkingbot-*.json	filter=git-crypt diff=git-crypt
-parking-bot/.prod.env	filter=git-crypt diff=git-crypt
-parking-bot/.test.env	filter=git-crypt diff=git-crypt
+parking-bot/env.prod.yml	filter=git-crypt diff=git-crypt
+parking-bot/env.test.yml	filter=git-crypt diff=git-crypt
