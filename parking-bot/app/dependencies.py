@@ -31,6 +31,7 @@ def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> 
             algorithms=["HS256"],
             issuer=conf.JWT_ISSUER,
             verify=True,
+            audience=conf.JWT_AUDIENCE,
         )
         if "sub" in jwt_payload or "identifier" in jwt_payload:
             return jwt_payload

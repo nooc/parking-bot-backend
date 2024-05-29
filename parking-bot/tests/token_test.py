@@ -9,5 +9,6 @@ def test_token_verification(settings):
         key=settings.HS256_KEY,
         algorithms=["HS256"],
         verify=True,
+        audience=settings.JWT_AUDIENCE,
     )
     assert "sub" in jwt_payload

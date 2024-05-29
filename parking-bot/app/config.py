@@ -54,7 +54,8 @@ class Settings(BaseSettings):
 
     FERNET_KEY: str = None
     HS256_KEY: str = None
-    JWT_ISSUER: str = None
+    JWT_ISSUER: str = "parkingbot"
+    JWT_AUDIENCE: str = "parkingbot"
     JWT_EXP_DAYS: Optional[int] = 1
 
     @classmethod

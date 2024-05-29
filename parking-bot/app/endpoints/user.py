@@ -71,6 +71,7 @@ def init_user(
             "exp": dt + timedelta(days=conf.JWT_EXP_DAYS if not test else 3000),
             "iss": conf.JWT_ISSUER,
             "iat": dt,
+            "aud": conf.JWT_AUDIENCE,
         },
         key=conf.HS256_KEY,
         algorithm="HS256",
