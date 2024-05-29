@@ -16,7 +16,8 @@ class ParkingOperationLog(BaseModel):
     LicensePlate: str
     Phone: str
     Type: ParkingOperationType
-    Timestamp: int
+    Start: int
+    Stop: int
 
 
 class ParkingLogCreate(BaseModel):
@@ -24,3 +25,5 @@ class ParkingLogCreate(BaseModel):
     DeviceId: str
     LicensePlate: str
     Type: ParkingOperationType
+    Start: int
+    Stop: int

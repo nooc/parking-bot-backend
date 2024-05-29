@@ -69,38 +69,40 @@ class Database:
             ParkingOperationLog.__name__: {},
         }
         for i in range(1, 4):
-            data[User.__name__][f"0a0a0a0a0a0a0a0{i}"] = User(
-                Id=f"0a0a0a0a0a0a0a0{i}",
+            uid = f"_0a0a0a0a0a0a0a0{i}"
+            data[User.__name__][uid] = User(
+                Id=uid,
                 State=UserState.Normal,
                 Roles=["user"],
                 Phone=fernet.encrypt(b"0701234567").decode(),
             )
             data[Vehicle.__name__][i] = Vehicle(
                 Id=i,
-                UserId=f"0a0a0a0a0a0a0a0{i}",
+                UserId=uid,
                 DeviceId=f"xyz{i}",
                 LicensePlate=fernet.encrypt(b"ABC10{i}").decode(),
                 Name=f"Car{i}",
             )
             data[SelectedTollParkDb.__name__][i] = SelectedTollParkDb(
                 Id=i,
-                UserId=f"0a0a0a0a0a0a0a0{i}",
+                UserId=uid,
                 CarParkId="1480 2007-03491",
                 PhoneParkingCode="000",
             )
             data[SelectedKioskParkDb.__name__][i] = SelectedKioskParkDb(
                 Id=i,
-                UserId=f"0a0a0a0a0a0a0a0{i}",
+                UserId=uid,
                 KioskId="8c1efaf6-04f5-443f-a566-0cf2e4fbd1ed",
             )
             data[ParkingOperationLog.__name__][i] = ParkingOperationLog(
                 Id=i,
-                UserId=f"0a0a0a0a0a0a0a0{i}",
+                UserId=uid,
                 DeviceId="device1",
                 LicensePlate=fernet.encrypt(b"ABC123").decode(),
                 Phone=fernet.encrypt(b"0700").decode(),
                 ParkingCode="123",
-                Timestamp=get_utc_millis(),
+                Start=get_utc_millis() - 3600000,
+                Stop=get_utc_millis(),
                 Type="start-sms",
             )
         self.__data = data

@@ -21,7 +21,7 @@ def log_operation(
     log_mgr.log(current_user, **info.model_dump())
 
 
-@router.get("/list", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK)
 def list_parking_operations(
     log_mgr: ParkingLogManager = Depends(get_log_manager),
     current_user: User = Depends(get_user),

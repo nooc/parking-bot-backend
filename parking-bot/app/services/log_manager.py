@@ -3,7 +3,6 @@ from typing import List
 from app.models.logs import ParkingOperationLog, ParkingOperationType
 from app.models.user import User
 from app.services.data_manager import _DataManager
-from app.util.time import get_utc_millis
 
 
 class ParkingLogManager(_DataManager):
@@ -18,6 +17,8 @@ class ParkingLogManager(_DataManager):
         DeviceId: str,
         LicensePlate: str,
         Type: ParkingOperationType,
+        Start: int,
+        Stop: int,
     ) -> None:
         log_data = dict(
             UserId=user.Id,
@@ -26,7 +27,8 @@ class ParkingLogManager(_DataManager):
             LicensePlate=LicensePlate,
             Phone=user.Phone,
             Type=Type,
-            Timestamp=get_utc_millis(),
+            Start=Start,
+            Stop=Stop,
         )
         log_data = self._shade(log_data)
         self._db.put_object(ParkingOperationLog(**log_data))
@@ -41,6 +43,6 @@ class ParkingLogManager(_DataManager):
         if "limit" in kwargs:
             args["limit"] = kwargs["limit"]
         ret = self._db.get_objects_by_query(
-            ParkingOperationLog, filters=filters, order=["Timestamp"], **args
+            ParkingOperationLog, filters=filters, order=["Stop"], **args
         )
         return [ParkingOperationLog(**self._unshade(log_item)) for log_item in ret]
