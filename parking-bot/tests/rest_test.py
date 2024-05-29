@@ -14,6 +14,7 @@ def test_register_user_with_token_should_succeed(
         algorithms=["HS256"],
         issuer=settings.JWT_ISSUER,
         verify=True,
+        audience=settings.JWT_AUDIENCE,
     )
 
 
