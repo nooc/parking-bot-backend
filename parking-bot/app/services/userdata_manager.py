@@ -1,5 +1,5 @@
 import app.util.http_error as err
-from app.models.carpark import SelectedCarParkDb, SelectedKioskParkDb
+from app.models.carpark import SelectedKioskParkDb, SelectedTollParkDb
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleDb
 from app.services.data_manager import _DataManager
@@ -12,22 +12,22 @@ class UserdataManager(_DataManager):
 
     # carparks
 
-    def list_toll_carparks(self, user: User) -> list[SelectedCarParkDb]:
-        self._db.get_objects_by_query(SelectedCarParkDb, [("UserId", "=", user.Id)])
+    def list_toll_carparks(self, user: User) -> list[SelectedTollParkDb]:
+        self._db.get_objects_by_query(SelectedTollParkDb, [("UserId", "=", user.Id)])
 
     def list_kiosk_carparks(self, user: User) -> list[SelectedKioskParkDb]:
         self._db.get_objects_by_query(SelectedKioskParkDb, [("UserId", "=", user.Id)])
 
-    def add_carpark(
+    def add_tollpark(
         self, user: User, CarParkId: str, PhoneParkingCode: str
-    ) -> SelectedCarParkDb:
+    ) -> SelectedTollParkDb:
         exists = self._db.find_object(
-            SelectedCarParkDb,
+            SelectedTollParkDb,
             filters=[("UserId", "=", user.Id), ("CarParkId", "=", CarParkId)],
         )
         if exists:
             err.conflict("Exists")
-        carpark = SelectedCarParkDb(
+        carpark = SelectedTollParkDb(
             UserId=user.Id, CarParkId=CarParkId, PhoneParkingCode=PhoneParkingCode
         )
         self._db.put_object(carpark)
@@ -44,9 +44,9 @@ class UserdataManager(_DataManager):
         self._db.put_object(kiosk)
         return kiosk
 
-    def remove_carpark(self, user: User, id: int) -> int:
+    def remove_tollpark(self, user: User, id: int) -> int:
         return self._db.delete_by_query(
-            SelectedCarParkDb, filters=[("Id", "=", id), ("UserId", "=", user.Id)]
+            SelectedTollParkDb, filters=[("Id", "=", id), ("UserId", "=", user.Id)]
         )
 
     def remove_kiosk(self, user: User, id: int) -> int:

@@ -10,7 +10,7 @@ from app.services.userdata_manager import UserdataManager
 router = APIRouter()
 
 
-@router.get("/list", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK)
 def list_vehicles(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
@@ -19,7 +19,7 @@ def list_vehicles(
     return [Vehicle(**vdb.model_dump()) for vdb in vehicles_db]
 
 
-@router.post("/add", status_code=status.HTTP_200_OK)
+@router.post("", status_code=status.HTTP_200_OK)
 def add_vehicle(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
@@ -29,7 +29,7 @@ def add_vehicle(
     return Vehicle(**vehicle_db.model_dump())
 
 
-@router.post("/update/{vehicle_id}", status_code=status.HTTP_200_OK)
+@router.put("/{vehicle_id}", status_code=status.HTTP_200_OK)
 def update_vehicle(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
@@ -39,7 +39,7 @@ def update_vehicle(
     return udata.update_vehicle(current_user, vehicle_id, update)
 
 
-@router.delete("/delete/{id}", status_code=status.HTTP_200_OK)
+@router.delete("/{id}", status_code=status.HTTP_200_OK)
 def delete_vehicle(
     udata: UserdataManager = Depends(get_userdata_manager),
     id: int = Path(title="vehicle id"),

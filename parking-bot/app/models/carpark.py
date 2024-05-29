@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
-class SelectedCarPark(BaseModel):
+class SelectedTollPark(BaseModel):
     """User carpark relation for storing user selelcted carparks."""
 
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
@@ -21,7 +21,7 @@ class SelectedKioskPark(BaseModel):
     KioskId: str
 
 
-class SelectedCarParkDb(SelectedCarPark):
+class SelectedTollParkDb(SelectedTollPark):
     UserId: str
 
 
@@ -32,5 +32,5 @@ class SelectedKioskParkDb(SelectedKioskPark):
 class CarParks(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
-    Toll: list[SelectedCarPark]
+    Toll: list[SelectedTollPark]
     Kiosk: list[SelectedKioskPark]

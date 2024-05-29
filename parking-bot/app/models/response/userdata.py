@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.carpark import SelectedCarParkDb
+from app.models.carpark import CarParks
 from app.models.user import User
 from app.models.vehicle import Vehicle
 
@@ -12,4 +12,4 @@ class UserData(BaseModel):
 
     User: User
     Vehicles: list[Vehicle]
-    CarParks: list[SelectedCarParkDb]
+    SelectedParking: CarParks

@@ -3,7 +3,7 @@ from typing import Any, List
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
 from app.dependencies import get_carpark_data, get_user, get_userdata_manager
-from app.models.carpark import CarParks, SelectedCarPark, SelectedKioskPark
+from app.models.carpark import CarParks, SelectedKioskPark, SelectedTollPark
 from app.models.user import User
 from app.services.carpark_data import CarParkDataSource
 from app.services.userdata_manager import UserdataManager
@@ -11,14 +11,14 @@ from app.services.userdata_manager import UserdataManager
 router = APIRouter()
 
 
-@router.get("/list", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK)
 def list_carparks(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
 ) -> CarParks:
     return CarParks(
         Toll=[
-            SelectedCarPark(**tp.model_dump())
+            SelectedTollPark(**tp.model_dump())
             for tp in udata.list_toll_carparks(current_user)
         ],
         Kiosk=[
@@ -28,31 +28,31 @@ def list_carparks(
     )
 
 
-@router.post("/add", status_code=status.HTTP_200_OK)
-def add_carpark(
+@router.post("/toll", status_code=status.HTTP_200_OK)
+def add_tollpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
     carpark_dat: CarParkDataSource = Depends(get_carpark_data),
     id: str = Query(title="Car park to add to selection."),
-) -> SelectedCarPark:
+) -> SelectedTollPark:
     carpark = carpark_dat.get_toll_parking(id)  # check if exists
-    return SelectedCarPark(
-        **udata.add_carpark(
+    return SelectedTollPark(
+        **udata.add_tollpark(
             current_user, carpark.Id, carpark.PhoneParkingCode
         ).model_dump()
     )
 
 
-@router.delete("/delete/{id}", status_code=status.HTTP_200_OK)
+@router.delete("/toll/{id}", status_code=status.HTTP_200_OK)
 def delete_carpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     id: int = Path(title="CarPark id"),
     current_user: User = Depends(get_user),
 ) -> Any:
-    udata.remove_carpark(current_user, id)
+    udata.remove_tollpark(current_user, id)
 
 
-@router.post("/kiosk/add", status_code=status.HTTP_200_OK)
+@router.post("/kiosk", status_code=status.HTTP_200_OK)
 def add_kiosk(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
@@ -65,7 +65,7 @@ def add_kiosk(
     )
 
 
-@router.delete("/kiosk/delete/{id}", status_code=status.HTTP_200_OK)
+@router.delete("/kiosk/{id}", status_code=status.HTTP_200_OK)
 def delete_kiosk(
     udata: UserdataManager = Depends(get_userdata_manager),
     id: int = Path(title="Kiosk id"),

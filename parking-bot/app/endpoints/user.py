@@ -10,10 +10,10 @@ import app.util.http_error as err
 from app.config import conf
 from app.dependencies import get_db, get_jwt, get_user, get_user_manager
 from app.endpoints.media_types import MEDIA_TYPE_JSON
-from app.models.carpark import SelectedCarParkDb
+from app.models.carpark import *
 from app.models.response.userdata import UserData
 from app.models.user import User, UserUpdate
-from app.models.vehicle import Vehicle
+from app.models.vehicle import Vehicle, VehicleDb
 from app.services.datastore import Database
 from app.services.user_manager import UserManager
 
@@ -100,11 +100,21 @@ def get_settings(
 ) -> UserData:
     try:
         vehicles = db.get_objects_by_query(
-            Vehicle, filters=[("UserId", "=", current_user.Id)]
+            VehicleDb, filters=[("UserId", "=", current_user.Id)]
         )
-        car_parks = db.get_objects_by_query(
-            SelectedCarParkDb, filters=[("UserId", "=", current_user.Id)]
+        toll = db.get_objects_by_query(
+            SelectedTollParkDb, filters=[("UserId", "=", current_user.Id)]
         )
-        return UserData(User=current_user, Vehicles=vehicles, CarParks=car_parks)
+        kiosk = db.get_objects_by_query(
+            SelectedKioskParkDb, filters=[("UserId", "=", current_user.Id)]
+        )
+        return UserData(
+            User=current_user,
+            Vehicles=vehicles,
+            SelectedParking=CarParks(
+                Toll=[SelectedTollPark(**t.model_dump()) for t in toll],
+                Kiosk=[SelectedKioskPark(**k.model_dump()) for k in kiosk],
+            ),
+        )
     except:
         err.internal("Error getting settings.")
