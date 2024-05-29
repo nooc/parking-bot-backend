@@ -4,7 +4,7 @@ from typing import Any, Union
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
-from app.models.carpark import SelectedCarParkDb, SelectedKioskParkDb
+from app.models.carpark import SelectedKioskParkDb, SelectedTollParkDb
 from app.models.logs import ParkingOperationLog
 from app.models.user import User, UserState
 from app.models.vehicle import Vehicle
@@ -64,7 +64,7 @@ class Database:
         data = {
             User.__name__: {},
             Vehicle.__name__: {},
-            SelectedCarParkDb.__name__: {},
+            SelectedTollParkDb.__name__: {},
             SelectedKioskParkDb.__name__: {},
             ParkingOperationLog.__name__: {},
         }
@@ -82,7 +82,7 @@ class Database:
                 LicensePlate=fernet.encrypt(b"ABC10{i}").decode(),
                 Name=f"Car{i}",
             )
-            data[SelectedCarParkDb.__name__][i] = SelectedCarParkDb(
+            data[SelectedTollParkDb.__name__][i] = SelectedTollParkDb(
                 Id=i,
                 UserId=f"0a0a0a0a0a0a0a0{i}",
                 CarParkId="1480 2007-03491",
