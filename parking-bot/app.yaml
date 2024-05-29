@@ -1,5 +1,5 @@
 runtime: python312
-service: api
+#service: api
 entrypoint: gunicorn -w 2 -b :$PORT -k uvicorn.workers.UvicornWorker app:parkingbot
 instance_class: F1
 default_expiration: "30s"
