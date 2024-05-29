@@ -79,3 +79,6 @@ class UserdataManager(_DataManager):
         return self._db.delete_by_query(
             VehicleDb, filters=[("Id", "=", id), ("UserId", "=", user.Id)]
         )
+
+
+__all__ = ("UserdataManager",)

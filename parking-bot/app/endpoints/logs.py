@@ -17,8 +17,8 @@ def log_operation(
     current_user: User = Depends(get_user),
     log_mgr: ParkingLogManager = Depends(get_log_manager),
     info: ParkingLogCreate = Body(title="Parking operation info."),
-) -> None:
-    log_mgr.log(current_user, **info.model_dump())
+) -> ParkingOperationLog:
+    return log_mgr.log(current_user, **info.model_dump())
 
 
 @router.get("", status_code=status.HTTP_200_OK)

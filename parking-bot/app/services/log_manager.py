@@ -19,7 +19,7 @@ class ParkingLogManager(_DataManager):
         Type: ParkingOperationType,
         Start: int,
         Stop: int,
-    ) -> None:
+    ) -> ParkingOperationLog:
         log_data = dict(
             UserId=user.Id,
             ParkingCode=ParkingCode,
@@ -31,7 +31,9 @@ class ParkingLogManager(_DataManager):
             Stop=Stop,
         )
         log_data = self._shade(log_data)
-        self._db.put_object(ParkingOperationLog(**log_data))
+        log = ParkingOperationLog(**log_data)
+        self._db.put_object(log)
+        return log
 
     def list(self, user: User, **kwargs) -> List[ParkingOperationLog]:
         filters = [("UserId", "=", user.Id)]
@@ -46,3 +48,6 @@ class ParkingLogManager(_DataManager):
             ParkingOperationLog, filters=filters, order=["Stop"], **args
         )
         return [ParkingOperationLog(**self._unshade(log_item)) for log_item in ret]
+
+
+__all__ = ("ParkingLogManager",)

@@ -77,3 +77,6 @@ class _DataManager(object):
             if hasattr(target, k):
                 setattr(target, k, v)
         return target
+
+
+__all__ = ("_DataManager",)

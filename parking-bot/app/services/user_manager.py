@@ -53,3 +53,6 @@ class UserManager(_DataManager):
     def list_users(self, offset=0, limit=20) -> list[User]:
         users = self._db.get_objects_by_query(User, offset=offset, limit=limit)
         return [User(**self._unshade(u)) for u in users]
+
+
+__all__ = ("UserManager",)

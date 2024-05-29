@@ -6,9 +6,9 @@ from app.models.user import User, UserState
 
 
 def test_log_success(log_manager):
-    user = User(Id="0a0a0a0a0a0a0a11", State=0, Phone="0700", Roles=["user"])
+    user = User(Id="xxyy", State=0, Phone="0700", Roles=["user"])
     stop = int(datetime.now(UTC).timestamp())
-    log_manager.log(
+    log = log_manager.log(
         user=user,
         ParkingCode="123",
         DeviceId="123",
@@ -17,10 +17,11 @@ def test_log_success(log_manager):
         Start=stop - 3600,
         Stop=stop,
     )
+    assert log.Id != None
 
 
 def test_list_success(log_manager):
     user = User(
         Id="0a0a0a0a0a0a0a01", State=UserState.Normal, Phone="0700", Roles=["user"]
     )
-    assert log_manager.list(user=user) != []
+    assert log_manager.list(user) != []

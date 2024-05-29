@@ -84,3 +84,6 @@ class CarParkDataSource:
         url = self._replace(self.__kiosk, CLIENTID=id)
         resp = self.__client.get(url).json()
         return KioskInfo(**resp)
+
+
+__all__ = ("CarParkDataSource",)

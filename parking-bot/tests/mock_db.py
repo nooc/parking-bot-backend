@@ -69,7 +69,7 @@ class Database:
             ParkingOperationLog.__name__: {},
         }
         for i in range(1, 4):
-            uid = f"_0a0a0a0a0a0a0a0{i}"
+            uid = f"0a0a0a0a0a0a0a0{i}"
             data[User.__name__][uid] = User(
                 Id=uid,
                 State=UserState.Normal,

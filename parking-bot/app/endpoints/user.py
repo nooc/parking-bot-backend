@@ -38,7 +38,6 @@ def get_user(current_user: User = Depends(get_user)) -> User:
 def init_user(
     um: UserManager = Depends(get_user_manager),
     jwtd: dict = Depends(get_jwt),
-    test: bool = Query(default=False),
 ) -> str:
     if not "identifier" in jwtd:
         err.bad_request("No identifier")
@@ -68,7 +67,7 @@ def init_user(
     return jwt.encode(
         payload={
             "sub": user.Id,
-            "exp": dt + timedelta(days=conf.JWT_EXP_DAYS if not test else 3000),
+            "exp": dt + timedelta(days=conf.JWT_EXP_DAYS),
             "iss": conf.JWT_ISSUER,
             "iat": dt,
             "aud": conf.JWT_AUDIENCE,
