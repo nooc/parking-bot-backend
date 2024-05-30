@@ -16,7 +16,7 @@ def list_vehicles(
     current_user: User = Depends(get_user),
 ) -> List[Vehicle]:
     vehicles_db = udata.list_vehicles(current_user)
-    return [Vehicle(v.model_dump()) for v in vehicles_db]
+    return [Vehicle(**v.model_dump()) for v in vehicles_db]
 
 
 @router.post("", status_code=status.HTTP_200_OK)
@@ -36,7 +36,7 @@ def update_vehicle(
     vehicle_id: int = Path(title="Vehicle id"),
     update: VehicleUpdate = Body(title="Vehicle data to update."),
 ) -> Vehicle:
-    return udata.update_vehicle(current_user, vehicle_id, update)
+    return udata.update_vehicle(current_user, vehicle_id, **update.model_dump())
 
 
 @router.delete("/{id}", status_code=status.HTTP_200_OK)
