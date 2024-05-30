@@ -64,7 +64,7 @@ class UserdataManager(_DataManager):
         shaded = VehicleDb(UserId=user.Id, **self._shade(vehicle))
         self._db.put_object(shaded)
         vehicle.Id = shaded.Id
-        return vehicle
+        return VehicleDb(**self._unshade(vehicle))
 
     def update_vehicle(self, user: User, vehicle_id: int, **data) -> VehicleDb:
         vehicle = self._db.find_object(
