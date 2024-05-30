@@ -110,7 +110,7 @@ def get_settings(
         )
         return UserData(
             User=current_user,
-            Vehicles=vehicles,
+            Vehicles=[Vehicle(**v.model_dump()) for v in vehicles],
             CarParks=CarParks(
                 Toll=[SelectedTollPark(**t.model_dump()) for t in toll],
                 Kiosk=[SelectedKioskPark(**k.model_dump()) for k in kiosk],
