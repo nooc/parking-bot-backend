@@ -111,7 +111,7 @@ def get_settings(
         return UserData(
             User=current_user,
             Vehicles=vehicles,
-            SelectedParking=CarParks(
+            CarParks=CarParks(
                 Toll=[SelectedTollPark(**t.model_dump()) for t in toll],
                 Kiosk=[SelectedKioskPark(**k.model_dump()) for k in kiosk],
             ),
