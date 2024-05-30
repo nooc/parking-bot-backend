@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, Path, status
 
 from app.dependencies import get_user, get_userdata_manager
 from app.models.user import User
-from app.models.vehicle import Vehicle, VehicleDb, VehicleUpdate
+from app.models.vehicle import Vehicle, VehicleAdd, VehicleDb, VehicleUpdate
 from app.services.userdata_manager import UserdataManager
 
 router = APIRouter()
@@ -16,14 +16,14 @@ def list_vehicles(
     current_user: User = Depends(get_user),
 ) -> List[Vehicle]:
     vehicles_db = udata.list_vehicles(current_user)
-    return [Vehicle(**vdb.model_dump()) for vdb in vehicles_db]
+    return [Vehicle(v.model_dump()) for v in vehicles_db]
 
 
 @router.post("", status_code=status.HTTP_200_OK)
 def add_vehicle(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-    add: Vehicle = Body(title="Vehicle to add."),
+    add: VehicleAdd = Body(title="Vehicle to add."),
 ) -> Vehicle:
     vehicle_db = udata.add_vehicle(current_user, Vehicle(**add.model_dump()))
     return Vehicle(**vehicle_db.model_dump())

@@ -3,11 +3,15 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
-class Vehicle(BaseModel):
+class VehicleAdd(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
     DeviceId: str
     LicensePlate: str
     Name: str
+
+
+class Vehicle(VehicleAdd):
+    Id: Optional[int] = None
 
 
 class VehicleDb(Vehicle):
