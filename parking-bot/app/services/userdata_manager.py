@@ -79,7 +79,7 @@ class UserdataManager(_DataManager):
         return VehicleDb(**self._unshade(updated))
 
     def remove_vehicle(self, id: int) -> int:
-        self._db.delete_object((VehicleDb, id))
+        self._db.delete_object(("VehicleDb", id))
         return 1
 
 
