@@ -78,10 +78,9 @@ class UserdataManager(_DataManager):
         self._db.put_object(updated)
         return VehicleDb(**self._unshade(updated))
 
-    def remove_vehicle(self, user: User, id: int) -> int:
-        return self._db.delete_by_query(
-            VehicleDb, filters=[("Id", "=", id), ("UserId", "=", user.Id)]
-        )
+    def remove_vehicle(self, id: int) -> int:
+        self._db.delete_object((VehicleDb, id))
+        return 1
 
 
 __all__ = ("UserdataManager",)

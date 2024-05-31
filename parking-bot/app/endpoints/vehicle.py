@@ -45,4 +45,4 @@ def delete_vehicle(
     vehicle_id: int = Path(title="vehicle id"),
     current_user: User = Depends(get_user),
 ) -> str:
-    return str(udata.remove_vehicle(current_user, vehicle_id))
+    return str(udata.remove_vehicle(vehicle_id))
