@@ -39,10 +39,10 @@ def update_vehicle(
     return udata.update_vehicle(current_user, vehicle_id, **update.model_dump())
 
 
-@router.delete("/{id}", status_code=status.HTTP_200_OK)
+@router.delete("/{vehicle_id}", status_code=status.HTTP_200_OK)
 def delete_vehicle(
     udata: UserdataManager = Depends(get_userdata_manager),
-    id: int = Path(title="vehicle id"),
+    vehicle_id: int = Path(title="vehicle id"),
     current_user: User = Depends(get_user),
-) -> Any:
-    udata.remove_vehicle(current_user, id)
+) -> str:
+    return str(udata.remove_vehicle(current_user, vehicle_id))
