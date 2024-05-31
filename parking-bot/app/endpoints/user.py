@@ -122,5 +122,5 @@ def get_settings(
                 Kiosk=[SelectedKioskPark(**k.model_dump()) for k in kiosks],
             ),
         )
-    except:
-        err.internal("Error getting settings.")
+    except Exception as ex:
+        err.internal(str(ex))

@@ -13,10 +13,14 @@ class UserdataManager(_DataManager):
     # carparks
 
     def list_toll_carparks(self, user: User) -> list[SelectedTollParkDb]:
-        self._db.get_objects_by_query(SelectedTollParkDb, [("UserId", "=", user.Id)])
+        return self._db.get_objects_by_query(
+            SelectedTollParkDb, [("UserId", "=", user.Id)]
+        )
 
     def list_kiosk_carparks(self, user: User) -> list[SelectedKioskParkDb]:
-        self._db.get_objects_by_query(SelectedKioskParkDb, [("UserId", "=", user.Id)])
+        return self._db.get_objects_by_query(
+            SelectedKioskParkDb, [("UserId", "=", user.Id)]
+        )
 
     def add_tollpark(
         self, user: User, CarParkId: str, PhoneParkingCode: str
