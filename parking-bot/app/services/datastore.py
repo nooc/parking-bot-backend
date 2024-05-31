@@ -14,14 +14,9 @@ def to_key(client: Client, handle: Any) -> Key:
     elif isinstance(handle, BaseModel):
         # schemas.*
         return client.key(type(handle).__name__, handle.Id)
-    elif (
-        isinstance(handle, tuple)
-        and len(handle) == 2
-        and type(handle[0]) == str
-        and type(handle[1]) in (str, int)
-    ):
+    elif isinstance(handle, tuple) and len(handle) == 2:
         # Tuple[str, Union[int,str]]
-        return client.key(handle[0], handle[1])
+        return client.key(str(handle[0]), handle[1])
     return None
 
 
@@ -262,7 +257,7 @@ class Database(object):
         Raises: HTTPException
         """
         try:
-            self.client.delete(to_key(handle))
+            self.client.delete(to_key(self.client, handle))
         except Exception as ex:
             logging.error(ex)
             err.internal("delete_object")
@@ -278,7 +273,7 @@ class Database(object):
         Raises: HTTPException
         """
         try:
-            self.client.delete_multi([to_key(h) for h in handles if h])
+            self.client.delete_multi([to_key(self.client, h) for h in handles if h])
         except Exception as ex:
             logging.error(ex)
             err.internal("delete_objects")
