@@ -8,3 +8,7 @@ automatic_scaling:
     max_instances: 1
     max_idle_instances: 1
 app_engine_apis: true
+handlers:
+- url: /docs
+  login: admin
+  script: auto

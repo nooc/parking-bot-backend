@@ -3,6 +3,8 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+from app.models.carpark import SelectedCarParks
+
 type RoleType = Literal["user", "admin"]
 
 
@@ -26,3 +28,4 @@ class User(BaseModel):
     State: UserState
     Phone: Optional[str] = None
     Roles: List[RoleType]
+    SelectedParkings: Optional[SelectedCarParks] = SelectedCarParks()

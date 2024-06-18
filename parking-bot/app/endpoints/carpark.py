@@ -72,3 +72,13 @@ def delete_kiosk(
     current_user: User = Depends(get_user),
 ) -> Any:
     udata.remove_kiosk(current_user, id)
+
+
+@router.get("/geo", status_code=status.HTTP_200_OK)
+def delete_kiosk(
+    udata: UserdataManager = Depends(get_userdata_manager),
+    lat: float = Query(title="Latitude"),
+    lon: float = Query(title="Longitude"),
+    current_user: User = Depends(get_user),
+) -> Any:
+    

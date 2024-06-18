@@ -18,6 +18,7 @@ from .services.datastore import Database
 from .services.user_manager import UserManager
 from .services.userdata_manager import UserdataManager
 from .util import http_error as err
+from .util.dggs import Dggs
 
 __security = HTTPBearer(auto_error=True)  # raises forbidden/401 if no token
 __ht_client = httpx.Client(http2=True)
@@ -127,3 +128,7 @@ def get_superuser(
     if __role_check(user.Roles, "admin"):
         return user
     err.unauthorized("Privilege error.")
+
+
+def get_dggs() -> Dggs:
+    return Dggs()
