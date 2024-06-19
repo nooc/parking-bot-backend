@@ -4,9 +4,9 @@ import httpx
 from httpx import Client
 
 from app.config import Settings
-from app.models.opendata.free import FreeCarPark
-from app.models.opendata.kiosk import KioskInfo
-from app.models.opendata.toll import TollCarPark
+from app.models.external.free import FreeParkingInfo
+from app.models.external.kiosk import KioskParkingInfo
+from app.models.external.toll import TollParkingInfo
 
 
 class CarParkDataSource:
@@ -27,7 +27,6 @@ class CarParkDataSource:
         self.__toll_item = conf.GBG_DATA_TOLL_ITEM
         self.__free_list = conf.GBG_DATA_FREE_LIST
         self.__free_item = conf.GBG_DATA_FREE_ITEM
-        self.__kiosk = conf.GBG_PARKING_KIOSK_INFO_URL
         self.__client = client
 
     def _replace(self, tpl_url, **items) -> str:
@@ -46,7 +45,7 @@ class CarParkDataSource:
 
     def get_nearby_toll_parking(
         self, lat: float, lon: float, radius: int
-    ) -> list[TollCarPark]:
+    ) -> list[TollParkingInfo]:
         part_url = self._replace(
             self.__toll_list,
             APPID=self.__app_id,
@@ -55,16 +54,16 @@ class CarParkDataSource:
             RADIUS=str(radius),
         )
         resp = self.__client.get(f"{self.__base_url}{part_url}").json()
-        return [TollCarPark(**d) for d in resp]
+        return [TollParkingInfo(**d) for d in resp]
 
-    def get_toll_parking(self, id: str) -> TollCarPark:
+    def get_toll_parking(self, id: str) -> TollParkingInfo:
         part_url = self._replace(self.__toll_item, APPID=self.__app_id, ID=id)
         resp = self.__client.get(f"{self.__base_url}{part_url}").json()
-        return TollCarPark(**resp)
+        return TollParkingInfo(**resp)
 
     def get_nearby_free_parking(
         self, lat: float, lon: float, radius: int
-    ) -> list[FreeCarPark]:
+    ) -> list[FreeParkingInfo]:
         part_url = self._replace(
             self.__free_list,
             APPID=self.__app_id,
@@ -73,17 +72,12 @@ class CarParkDataSource:
             RADIUS=str(radius),
         )
         resp = self.__client.get(f"{self.__base_url}{part_url}").json()
-        return [FreeCarPark(**d) for d in resp]
+        return [FreeParkingInfo(**d) for d in resp]
 
-    def get_free_parking(self, id: str) -> FreeCarPark:
+    def get_free_parking(self, id: str) -> FreeParkingInfo:
         part_url = self._replace(self.__free_item, APPID=self.__app_id, ID=id)
         resp = self.__client.get(f"{self.__base_url}{part_url}").json()
-        return FreeCarPark(**resp)
-
-    def get_kiosk_info(self, id: str) -> KioskInfo:
-        url = self._replace(self.__kiosk, CLIENTID=id)
-        resp = self.__client.get(url).json()
-        return KioskInfo(**resp)
+        return FreeParkingInfo(**resp)
 
 
 __all__ = ("CarParkDataSource",)

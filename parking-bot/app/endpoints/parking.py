@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 from app.dependencies import get_carpark_data, get_user, get_userdata_manager
 from app.models.carpark import CarParks, SelectedKioskPark, SelectedTollPark
 from app.models.user import User
-from app.services.carpark_data import CarParkDataSource
+from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.userdata_manager import UserdataManager
 
 router = APIRouter()

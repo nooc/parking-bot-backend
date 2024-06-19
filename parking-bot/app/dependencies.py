@@ -10,11 +10,13 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import conf
+from app.services.car_park_data import CarParkDataManager
+from app.services.kiosk_manager import KioskManager
 from app.services.log_manager import ParkingLogManager
 
 from .models.user import User
-from .services.carpark_data import CarParkDataSource
 from .services.datastore import Database
+from .services.gothenburg_open_data import CarParkDataSource
 from .services.user_manager import UserManager
 from .services.userdata_manager import UserdataManager
 from .util import http_error as err
@@ -132,3 +134,17 @@ def get_superuser(
 
 def get_dggs() -> Dggs:
     return Dggs()
+
+
+def get_carparkdata_manager(
+    db: Database = Depends(get_db),
+    source: CarParkDataSource = Depends(get_carpark_data),
+    dggs: Database = Depends(get_dggs),
+) -> CarParkDataManager:
+    return CarParkDataManager(db=db, source=source, dggs=dggs, cfg=conf)
+
+
+def get_kiosk(
+    db: Database = Depends(get_db),
+) -> KioskManager:
+    return KioskManager(db, cfg=conf, client=__ht_client)

@@ -56,7 +56,9 @@ class Settings(BaseSettings):
     HS256_KEY: str = None
     JWT_ISSUER: str = "parkingbot"
     JWT_AUDIENCE: str = "parkingbot"
-    JWT_EXP_DAYS: Optional[int] = 1
+    JWT_EXP_DAYS: int = 1
+
+    DGGS_CELL_EXPIRY_DAYS: int = 50
 
     @classmethod
     def settings_customise_sources(

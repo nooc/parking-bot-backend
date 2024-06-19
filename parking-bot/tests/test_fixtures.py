@@ -8,7 +8,7 @@ from pydantic_settings import SettingsConfigDict
 import app.config
 from app import parkingbot
 from app.dependencies import get_db, get_fernet
-from app.services.carpark_data import CarParkDataSource
+from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.log_manager import ParkingLogManager
 from app.services.user_manager import UserManager
 from app.services.userdata_manager import UserdataManager

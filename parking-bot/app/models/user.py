@@ -28,4 +28,4 @@ class User(BaseModel):
     State: UserState
     Phone: Optional[str] = None
     Roles: List[RoleType]
-    SelectedParkings: Optional[SelectedCarParks] = SelectedCarParks()
+    CarParks: Optional[SelectedCarParks] = SelectedCarParks()

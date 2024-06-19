@@ -1,42 +1,30 @@
-from typing import Optional,
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.kiosk_info import KioskInfo
-from app.models.toll_info import TollInfo
 
-
-class ParkingBase(BaseModel):
+class CarPark(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
+    # db id
+    Id: Optional[int] = None
     # dggs cell this location belongs to
     CellId: str
-    # geometry. atleast a point
-    Geometry: str
 
-class TollPark(ParkingBase):
-    """User carpark relation for storing user selelcted carparks."""
+    Type: Literal["toll", "kiosk", "free"]
 
-    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
+    # json for models.external.*.*ParkingInfo
+    Info: str
 
-    Id: Optional[int] = None
-    Info: TollInfo
-
-class KioskPark(ParkingBase):
-    """User carpark relation for storing user selelcted carparks."""
-
-    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
-    Id: Optional[int] = None
-    Info: KioskInfo
-
-class CarParks(BaseModel):
-    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
-
-    Toll: list[TollPark]
-    Kiosk: list[KioskPark]
 
 class SelectedCarParks(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Toll: Optional[list[int]] = []
     Kiosk: Optional[list[int]] = []
+    Free: Optional[list[int]] = []
+
+
+class Kiosk(BaseModel):
+    Id: str
+    CellId: str
