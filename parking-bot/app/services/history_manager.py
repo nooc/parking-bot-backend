@@ -1,11 +1,11 @@
 from typing import List
 
-from app.models.logs import ParkingOperationLog, ParkingOperationType
+from app.models.history import ParkingOperationLog, ParkingOperationType
 from app.models.user import User
 from app.services.data_manager import _DataManager
 
 
-class ParkingLogManager(_DataManager):
+class ParkingHistoryManager(_DataManager):
 
     def __init__(self, db, fernet):
         super().__init__(db, fernet, ["LicensePlate", "Phone"])
@@ -50,4 +50,4 @@ class ParkingLogManager(_DataManager):
         return [ParkingOperationLog(**self._unshade(log_item)) for log_item in ret]
 
 
-__all__ = ("ParkingLogManager",)
+__all__ = ("ParkingHistoryManager",)

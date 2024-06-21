@@ -23,8 +23,3 @@ class SelectedCarParks(BaseModel):
     Toll: Optional[list[int]] = []
     Kiosk: Optional[list[int]] = []
     Free: Optional[list[int]] = []
-
-
-class Kiosk(BaseModel):
-    Id: str
-    CellId: str

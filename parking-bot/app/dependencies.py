@@ -11,8 +11,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.config import conf
 from app.services.car_park_data import CarParkDataManager
+from app.services.history_manager import ParkingHistoryManager
 from app.services.kiosk_manager import KioskManager
-from app.services.log_manager import ParkingLogManager
 
 from .models.user import User
 from .services.datastore import Database
@@ -41,6 +41,8 @@ def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> 
         msg = "Invalid claims"
     except Exception as ex:
         msg = str(ex)
+        logging.warn(msg)
+
     err.unauthorized(msg)
 
 
@@ -97,8 +99,8 @@ def get_carpark_data() -> CarParkDataSource:
 
 def get_log_manager(
     db=Depends(get_db), fernet=Depends(get_fernet)
-) -> ParkingLogManager:
-    return ParkingLogManager(db, fernet)
+) -> ParkingHistoryManager:
+    return ParkingHistoryManager(db, fernet)
 
 
 def get_user_manager(db=Depends(get_db), fernet=Depends(get_fernet)) -> UserManager:
@@ -146,5 +148,6 @@ def get_carparkdata_manager(
 
 def get_kiosk(
     db: Database = Depends(get_db),
+    dggs: Database = Depends(get_dggs),
 ) -> KioskManager:
-    return KioskManager(db, cfg=conf, client=__ht_client)
+    return KioskManager(db, cfg=conf, client=__ht_client, dggs=dggs)

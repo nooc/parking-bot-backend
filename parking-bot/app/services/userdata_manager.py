@@ -1,5 +1,4 @@
 import app.util.http_error as err
-from app.models.carpark import SelectedCarParks
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleDb
 from app.services.data_manager import _DataManager

@@ -2,10 +2,10 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-type ParkingOperationType = Literal["start-sms", "stop-sms", "start-kiosk"]
+type HistoryType = Literal["start-sms", "stop-sms", "start-kiosk"]
 
 
-class ParkingOperationLog(BaseModel):
+class HistoryItem(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Id: Optional[int] = None
@@ -15,15 +15,15 @@ class ParkingOperationLog(BaseModel):
     DeviceId: str
     LicensePlate: str
     Phone: str
-    Type: ParkingOperationType
+    Type: HistoryType
     Start: int
     Stop: int
 
 
-class ParkingLogCreate(BaseModel):
+class HistoryItemCreate(BaseModel):
     ParkingCode: str
     DeviceId: str
     LicensePlate: str
-    Type: ParkingOperationType
+    Type: HistoryType
     Start: int
     Stop: int

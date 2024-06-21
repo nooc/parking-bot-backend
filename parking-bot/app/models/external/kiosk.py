@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
+# external
 class KioskParkingInfo(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
@@ -17,3 +18,12 @@ class KioskParkingInfo(BaseModel):
     parkingFullHeading: Optional[str] = None
     parkingName: Optional[str] = None
     availablePermitsCount: Optional[int] = 0
+
+
+# internal
+class KioskParkingInfoEx(KioskParkingInfo):
+    Id: Optional[str] = None
+    Lat: float
+    Long: float
+    CellId: str
+    WKT: str

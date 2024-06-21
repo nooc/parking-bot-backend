@@ -2,11 +2,13 @@ from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
+from app.services.kiosk_manager import KioskManager
 import app.util.http_error as err
 from app.dependencies import (
     get_carpark_data,
     get_carparkdata_manager,
     get_dggs,
+    get_kiosk,
     get_user,
     get_userdata_manager,
 )
@@ -51,10 +53,11 @@ def delete_carpark(
 def add_kiosk(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-    carpark_data: CarParkDataSource = Depends(get_carpark_data),
+    kiosk: KioskManager = Depends(get_kiosk),
     id: str = Query(title="Kiosk park to add to selection."),
 ) -> None:
     # TODO: check kiosk exists (try fetch kiosk info)
+    kiosk.
     udata.add_kioskpark(user=current_user, carpark_id=id)
 
 

@@ -4,10 +4,10 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 
 import app.util.http_error as err
 from app.dependencies import get_db, get_log_manager, get_superuser, get_user
-from app.models.logs import ParkingLogCreate, ParkingOperationLog
+from app.models.history import ParkingLogCreate, ParkingOperationLog
 from app.models.user import User
 from app.services.datastore import Database
-from app.services.log_manager import ParkingLogManager
+from app.services.history_manager import ParkingHistoryManager
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("", status_code=status.HTTP_200_OK)
 def log_operation(
     current_user: User = Depends(get_user),
-    log_mgr: ParkingLogManager = Depends(get_log_manager),
+    log_mgr: ParkingHistoryManager = Depends(get_log_manager),
     info: ParkingLogCreate = Body(title="Parking operation info."),
 ) -> ParkingOperationLog:
     return log_mgr.log(current_user, **info.model_dump())
@@ -23,7 +23,7 @@ def log_operation(
 
 @router.get("", status_code=status.HTTP_200_OK)
 def list_parking_operations(
-    log_mgr: ParkingLogManager = Depends(get_log_manager),
+    log_mgr: ParkingHistoryManager = Depends(get_log_manager),
     current_user: User = Depends(get_user),
     from_time: int = Query(0, title="From timestamp."),
     offset: int = Query(0, title="List offset.", ge=0),

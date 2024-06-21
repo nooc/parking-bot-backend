@@ -5,7 +5,7 @@ from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
 from app.models.carpark import SelectedKioskParkDb, SelectedTollParkDb
-from app.models.logs import ParkingOperationLog
+from app.models.history import ParkingOperationLog
 from app.models.user import User, UserState
 from app.models.vehicle import Vehicle
 from app.util.time import get_utc_millis

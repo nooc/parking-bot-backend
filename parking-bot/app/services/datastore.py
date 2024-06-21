@@ -98,7 +98,6 @@ class Database(object):
                 properties = dict(ent.items())
                 return objClass(Id=objId, **properties)
         except ValueError as ex:
-            logging.error(str(ex))
             err.bad_request(str(ex))
 
     def get_objects_by_id(
@@ -125,30 +124,6 @@ class Database(object):
                 ret.append(objClass(Id=e.key.id, **properties))
             return ret
         except Exception as ex:
-            logging.error(str(ex))
-            err.bad_request(str(ex))
-
-    def verify_object_ids(
-        self, objClass: Any, ids: list[Union[int, str]]
-    ) -> list[Union[int, str]]:
-        """_summary_
-
-        Args:
-            objClass (Any): _description_
-            ids (list[Union[int,str]]): _description_
-
-        Returns:
-            list[Union[int,str]]: _description_
-
-        Raises: HTTPException
-        """
-        try:
-            res = self.client.get_multi(
-                [self.client.key(objClass.__name__, id) for id in ids],
-            )
-            return [e.key.id for e in res]
-        except Exception as ex:
-            logging.error(str(ex))
             err.bad_request(str(ex))
 
     def get_keys_by_query(

@@ -3,10 +3,10 @@ from hashlib import blake2s
 from time import time
 
 from app.config import Settings
-from app.models.carpark import CarPark, Kiosk
+from app.models.carpark import CarPark, Kiosk, KnownKiosk
 from app.models.cell import CellInfo
 from app.models.external.free import FreeParkingInfo
-from app.models.external.kiosk import KioskParkingInfo
+from app.models.external.kiosk import KioskParkingInfo, KioskParkingInfoEx
 from app.models.external.toll import TollParkingInfo
 from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.kiosk_manager import KioskManager
@@ -78,11 +78,11 @@ class CarParkDataManager:
         """
         parkings: list[CarPark] = []
         lat, lon, area = self._dggs.cell_to_lat_lon_area(id)
-
-        old_set = self._db.get_keys_by_query(CarPark, [("CellId", "=", id)])
-
         # TODO: figure out radius from area
         rad = 500
+
+        # clear old
+        self._db.delete_by_query(CarPark, [("CellId", "=", id)])
 
         # get toll
         tplist: list[TollParkingInfo] = self._src.get_nearby_toll_parking(
@@ -117,10 +117,9 @@ class CarParkDataManager:
         )
 
         # get kiosks
-        kiosks: list[Kiosk] = self._db.get_objects_by_query(
-            Kiosk, [("CellId", "=", id)]
+        klist: list[KioskParkingInfoEx] = self._db.get_objects_by_query(
+            KioskParkingInfoEx, [("CellId", "=", id)]
         )
-        kplist = self._kiosk.get_checked([k.Id for k in kiosks])
         parkings.extend(
             [
                 CarPark(
@@ -129,7 +128,7 @@ class CarParkDataManager:
                     Type="kiosk",
                     Info=inf.model_dump_json(),
                 )
-                for inf in kplist
+                for inf in klist
             ]
         )
 
