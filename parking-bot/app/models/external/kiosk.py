@@ -20,6 +20,12 @@ class KioskParkingInfo(BaseModel):
     availablePermitsCount: Optional[int] = 0
 
 
+class KioskParkingCreate(BaseModel):
+    Id: Optional[str] = None
+    Lat: float
+    Long: float
+
+
 # internal
 class KioskParkingInfoEx(KioskParkingInfo):
     Id: Optional[str] = None

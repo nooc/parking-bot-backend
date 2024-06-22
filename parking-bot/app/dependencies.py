@@ -13,6 +13,7 @@ from app.config import conf
 from app.services.car_park_data import CarParkDataManager
 from app.services.history_manager import ParkingHistoryManager
 from app.services.kiosk_manager import KioskManager
+from app.services.parking_manager import ParkingManager
 
 from .models.user import User
 from .services.datastore import Database
@@ -150,4 +151,10 @@ def get_kiosk(
     db: Database = Depends(get_db),
     dggs: Database = Depends(get_dggs),
 ) -> KioskManager:
-    return KioskManager(db, cfg=conf, client=__ht_client, dggs=dggs)
+    return KioskManager(db=db, cfg=conf, client=__ht_client, dggs=dggs)
+
+
+def get_parking_manager(
+    db: Database = Depends(get_db),
+) -> ParkingManager:
+    return ParkingManager(db=db, cfg=conf, client=__ht_client)

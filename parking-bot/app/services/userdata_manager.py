@@ -1,7 +1,10 @@
 import app.util.http_error as err
+from app.models.carpark import CarPark
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleDb
 from app.services.data_manager import _DataManager
+
+__SELECTABLE_TYPES = ["toll", "kiosk"]
 
 
 class UserdataManager(_DataManager):
@@ -11,31 +14,24 @@ class UserdataManager(_DataManager):
 
     # carparks
 
-    def add_tollpark(self, user: User, carpark_id: int) -> None:
-        if carpark_id in user.CarParks.Toll:
+    def add_carpark(self, user: User, carpark_id: int) -> None:
+        if carpark_id in user.CarParks:
             err.conflict("Id exists.")
-        user.CarParks.Toll.append(carpark_id)
-        self._db.put_object(user)
-
-    def add_kioskpark(self, user: User, carpark_id: int) -> None:
-        if carpark_id in user.CarParks.Kiosk:
-            err.conflict("Id exists.")
-        user.CarParks.Kiosk.append(carpark_id)
-        self._db.put_object(user)
-
-    def remove_tollpark(self, user: User, carpark_id: int) -> None:
-        if carpark_id in user.CarParks.Toll:
-            user.CarParks.Toll.remove(carpark_id)
+        carpark: CarPark = self._db.get_object(CarPark, carpark_id) or err.not_found(
+            "CarPark"
+        )
+        if carpark.Type in __SELECTABLE_TYPES:
+            user.CarParks.append(carpark_id)
             self._db.put_object(user)
-            return
-        err.not_found("Id not found.")
+        else:
+            err.bad_request("CarPark type")
 
-    def remove_kioskpark(self, user: User, carpark_id: int) -> None:
-        if carpark_id in user.CarParks.Kiosk:
-            user.CarParks.Kiosk.remove(carpark_id)
+    def remove_carpark(self, user: User, carpark_id: int) -> None:
+        if carpark_id in user.CarParks:
+            user.CarParks.remove(carpark_id)
             self._db.put_object(user)
-            return
-        err.not_found("Id not found.")
+        else:
+            err.not_found("Id not found.")
 
     # vehicles
 

@@ -94,6 +94,9 @@ def update_user(
     current_user: User = Depends(get_user),
     user_data: UserUpdate = Body(title="Data to update", media_type=MEDIA_TYPE_JSON),
 ) -> User:
+    needs_admin = user_data.model_fields_set.intersection(set(["State", "Roles"]))
+    if len(needs_admin) != 0 and not "admin" in current_user.Roles:
+        err.forbidden("Not enough privileges")
     return um.update_user(user=current_user, **user_data.model_dump(exclude_unset=True))
 
 
@@ -112,15 +115,9 @@ def get_settings(
 ) -> UserData:
     try:
         vehicles = udata.list_vehicles(current_user)
-        tolls = udata.list_toll_carparks(current_user)
-        kiosks = udata.list_kiosk_carparks(current_user)
         return UserData(
             User=current_user,
             Vehicles=[Vehicle(**v.model_dump()) for v in vehicles],
-            CarParks=CarParks(
-                Toll=[SelectedTollPark(**t.model_dump()) for t in tolls],
-                Kiosk=[SelectedKioskPark(**k.model_dump()) for k in kiosks],
-            ),
         )
     except Exception as ex:
         err.internal(str(ex))

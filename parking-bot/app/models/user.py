@@ -1,9 +1,7 @@
 from enum import IntEnum
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
-
-from app.models.carpark import SelectedCarParks
 
 type RoleType = Literal["user", "admin"]
 
@@ -18,6 +16,9 @@ class UserUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Phone: Optional[str] = None
+    CarParks: Optional[list[str]] = None
+    Roles: Optional[list[RoleType]] = None
+    State: Optional[UserState] = None
 
 
 # Db object
@@ -27,5 +28,8 @@ class User(BaseModel):
     Id: str
     State: UserState
     Phone: Optional[str] = None
-    Roles: List[RoleType]
-    CarParks: Optional[SelectedCarParks] = SelectedCarParks()
+    Roles: list[RoleType]
+    CarParks: Optional[list[str]] = []
+
+
+__all__ = ("RoleType", "UserState", "UserUpdate", "User")

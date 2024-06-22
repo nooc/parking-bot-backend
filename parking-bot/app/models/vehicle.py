@@ -23,3 +23,6 @@ class VehicleUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Name: Optional[str] = None
+
+
+__all__ = ("VehicleAdd", "Vehicle", "VehicleDb", "VehicleUpdate")

@@ -1,4 +1,5 @@
 from app.models.carpark import SelectedKioskParkDb, SelectedTollParkDb
+from app.models.parking import ActiveParking
 from app.models.user import User, UserState
 from app.models.vehicle import VehicleDb
 from app.services.data_manager import _DataManager
@@ -45,8 +46,7 @@ class UserManager(_DataManager):
 
     def delete_user(self, user_id: str) -> None:
         user_filter = [("UserId", "=", user_id)]
-        self._db.delete_by_query(SelectedTollParkDb, filters=user_filter)
-        self._db.delete_by_query(SelectedKioskParkDb, filters=user_filter)
+        self._db.delete_by_query(ActiveParking, filters=user_filter)
         self._db.delete_by_query(VehicleDb, filters=user_filter)
         self._db.delete_object((User, user_id))
 

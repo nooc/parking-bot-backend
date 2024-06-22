@@ -2,24 +2,21 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
+type CarParkType = Literal["toll", "kiosk", "free"]
+
 
 class CarPark(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     # db id
-    Id: Optional[int] = None
+    Id: Optional[str] = None
     # dggs cell this location belongs to
     CellId: str
 
-    Type: Literal["toll", "kiosk", "free"]
+    Type: CarParkType
 
     # json for models.external.*.*ParkingInfo
     Info: str
 
 
-class SelectedCarParks(BaseModel):
-    model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
-
-    Toll: Optional[list[int]] = []
-    Kiosk: Optional[list[int]] = []
-    Free: Optional[list[int]] = []
+__all__ = ("CarParkType", "CarPark")

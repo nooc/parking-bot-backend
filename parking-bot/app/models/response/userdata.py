@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict
 
-from app.models.carpark import CarParks
 from app.models.user import User
 from app.models.vehicle import Vehicle
 
@@ -10,4 +9,6 @@ class UserData(BaseModel):
 
     User: User
     Vehicles: list[Vehicle]
-    CarParks: CarParks
+
+
+__all__ = ("UserData",)

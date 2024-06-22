@@ -2,6 +2,7 @@ from datetime import timedelta
 from hashlib import blake2s
 from time import time
 
+import app.util.http_error as err
 from app.config import Settings
 from app.models.carpark import CarPark, Kiosk, KnownKiosk
 from app.models.cell import CellInfo
@@ -30,6 +31,10 @@ class CarParkDataManager:
         self._dggs = dggs
         self._cfg = cfg
         self._kiosk = kiosk
+
+    def get_carpark(self, id: str) -> CarPark:
+        carpark = self._db.get_object(CarPark, id)
+        return carpark or err.not_found("Car park not found.")
 
     def get_carparks_by_cell_id(self, id: str) -> list[CarPark]:
         """Get `CarPark` objects belonging to the cell.

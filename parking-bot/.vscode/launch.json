@@ -16,6 +16,9 @@
                 "--ssl-keyfile", "localhost+2-key.pem",
                 "--ssl-certfile", "localhost+2.pem"
             ],
+            "env": {
+                "GOOGLE_APPLICATION_CREDENTIALS":"parkingbot-421610-27e53c8789d5.json"
+            },
             "jinja": true
         },
         {

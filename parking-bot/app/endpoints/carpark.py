@@ -2,7 +2,6 @@ from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
-from app.services.kiosk_manager import KioskManager
 import app.util.http_error as err
 from app.dependencies import (
     get_carpark_data,
@@ -13,9 +12,11 @@ from app.dependencies import (
     get_userdata_manager,
 )
 from app.models.carpark import CarPark, SelectedCarParks
+from app.models.external.kiosk import KioskParkingCreate
 from app.models.user import User
 from app.services.car_park_data import CarParkDataManager
 from app.services.gothenburg_open_data import CarParkDataSource
+from app.services.kiosk_manager import KioskManager
 from app.services.userdata_manager import UserdataManager
 from app.util.dggs import Dggs
 
@@ -23,21 +24,20 @@ router = APIRouter()
 
 
 @router.get("", status_code=status.HTTP_200_OK)
-def list_carparks(
+def list_selected_carpark_ids(
     current_user: User = Depends(get_user),
-) -> SelectedCarParks:
+) -> list[str]:
     return current_user.CarParks
 
 
-@router.post("/toll", status_code=status.HTTP_200_OK)
-def add_tollpark(
+@router.post("/{id}", status_code=status.HTTP_200_OK)
+def select_carpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-    carpark_dat: CarParkDataSource = Depends(get_carpark_data),
-    id: str = Query(title="Car park to add to selection."),
+    cpdata: CarParkDataManager = Depends(get_carparkdata_manager),
+    id: str = Path(title="Car park id to add to selection."),
 ) -> None:
-    carpark_dat.get_toll_parking(id)  # check if exists
-    udata.add_tollpark(user=current_user, carpark_id=id)
+    udata.add_carpark(user=current_user, carpark_id=id)
 
 
 @router.delete("/toll/{id}", status_code=status.HTTP_200_OK)
@@ -54,11 +54,12 @@ def add_kiosk(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
     kiosk: KioskManager = Depends(get_kiosk),
-    id: str = Query(title="Kiosk park to add to selection."),
+    new_kiosk: KioskParkingCreate = Body(title="Kiosk parking to add to known kiosks."),
 ) -> None:
     # TODO: check kiosk exists (try fetch kiosk info)
-    kiosk.
-    udata.add_kioskpark(user=current_user, carpark_id=id)
+    kiosk.try_add_to_known_kiosks(
+        id=new_kiosk.Id, lat=new_kiosk.Lat, lon=new_kiosk.Long
+    )
 
 
 @router.delete("/kiosk/{id}", status_code=status.HTTP_200_OK)
