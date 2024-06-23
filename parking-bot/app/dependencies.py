@@ -14,6 +14,7 @@ from app.services.car_park_data import CarParkDataManager
 from app.services.history_manager import ParkingHistoryManager
 from app.services.kiosk_manager import KioskManager
 from app.services.parking_manager import ParkingManager
+from app.services.task_manager import TaskManager
 
 from .models.user import User
 from .services.datastore import Database
@@ -158,3 +159,10 @@ def get_parking_manager(
     db: Database = Depends(get_db),
 ) -> ParkingManager:
     return ParkingManager(db=db, cfg=conf, client=__ht_client)
+
+
+def get_task_manager(
+    db: Database = Depends(get_db),
+    parking: ParkingManager = Depends(get_parking_manager),
+) -> TaskManager:
+    return TaskManager(db=db, parking=parking, cfg=conf)

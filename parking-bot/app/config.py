@@ -27,14 +27,17 @@ class Settings(BaseSettings):
     RSA_PUB_APP: str
 
     SERVER_NAME: str
-    # GOOGLE_CLOUD_PROJECT: str
-    # GAE_APPLICATION: str
-    # GAE_DEPLOYMENT_ID: str
-    # GAE_INSTANCE: str
-    TASK_QUEUE_NAME: str
-    # GAE_REGION: str
+
+    # App engien env
+    GOOGLE_CLOUD_PROJECT: str
+    GAE_APPLICATION: str
+    GAE_DEPLOYMENT_ID: str
+    GAE_INSTANCE: str
+    GAE_REGION: str
+
     CREDENTIALS_JSON: str
     STORAGE_BUCKET: str
+    TASK_QUEUE_NAME: str
 
     SMTP_TLS: bool = True
     SMTP_PORT: int = 25
