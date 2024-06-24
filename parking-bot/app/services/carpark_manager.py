@@ -1,12 +1,13 @@
 from datetime import timedelta
 from time import time
+from typing import Union
 
 import app.util.http_error as err
 from app.config import Settings
 from app.models.carpark import CarPark
 from app.models.cell import CellInfo
 from app.models.external.free import FreeParkingInfo
-from app.models.external.kiosk import KioskParkingInfo, KioskParkingInfoEx
+from app.models.external.kiosk import KioskParkingInfoEx
 from app.models.external.toll import TollParkingInfo
 from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.kiosk_manager import KioskManager
@@ -45,11 +46,11 @@ class CarParkManager:
         Returns:
             list[CarPark]: `CarPark` objects
         """
-        self._check_cell(id)
-        result = self._db.get_objects_by_query(CarPark, [("CellId", "=", id)])
-        return result
+        result = self._check_cell(id)
+        val = result or self._db.get_objects_by_query(CarPark, [("CellId", "=", id)])
+        return val
 
-    def _check_cell(self, id: str) -> None:
+    def _check_cell(self, id: str) -> Union[list[CarPark], None]:
         """Check cell by doing the following:
 
         If Exists
@@ -66,25 +67,22 @@ class CarParkManager:
             id (str): _description_
         """
         info: CellInfo = self._db.get_object(CellInfo, id)
-        if info:
-            if info.Expires < time():
-                self._update_cell(id)
-        else:
-            self._update_cell(id)
+        if info and info.Expires > time():
+            return None
+        return self._update_cell(id)
 
     def _clear_cell(self, id: str) -> None:
         self._db.delete_by_query(CarPark, [("CellId", "=", id)])
 
-    def _update_cell(self, id: str) -> None:
+    def _update_cell(self, id: str) -> Union[list[CarPark], None]:
         """Update or create cell.
 
         Args:
             id (str): Cell id
         """
         parkings: list[CarPark] = []
-        lat, lon, area = self._dggs.cell_to_lat_lon_area(id)
-        # TODO: figure out radius from area
-        rad = 500
+        cell = self._dggs.get_cell(id)
+        lat, lon, rad = self._dggs.cell_to_lat_lon_rad(id)
 
         # clear old
         self._db.delete_by_query(CarPark, [("CellId", "=", id)])
@@ -93,6 +91,8 @@ class CarParkManager:
         tplist: list[TollParkingInfo] = self._src.get_nearby_toll_parking(
             lat=lat, lon=lon, radius=rad
         )
+        # filter out edge cases not belonging to cell
+        filtered = [p for p in tplist if cell.contains((p.Long, p.Lat), plane=False)]
         parkings.extend(
             [
                 CarPark(
@@ -101,7 +101,7 @@ class CarParkManager:
                     Type="toll",
                     Info=inf.model_dump_json(),
                 )
-                for inf in tplist
+                for inf in filtered
             ]
         )
 
@@ -109,6 +109,8 @@ class CarParkManager:
         fplist: list[FreeParkingInfo] = self._src.get_nearby_free_parking(
             lat=lat, lon=lon, radius=rad
         )
+        # filter out edge cases not belonging to cell
+        filtered = [p for p in fplist if cell.contains((p.Long, p.Lat), plane=False)]
         parkings.extend(
             [
                 CarPark(
@@ -117,7 +119,7 @@ class CarParkManager:
                     Type="free",
                     Info=inf.model_dump_json(),
                 )
-                for inf in fplist
+                for inf in filtered
             ]
         )
 
@@ -144,8 +146,11 @@ class CarParkManager:
         batch.put(
             CellInfo(
                 Id=id,
-                Expires=time()
-                + timedelta(days=self._cfg.DGGS_CELL_EXPIRY_DAYS).total_seconds(),
+                Expires=int(
+                    time()
+                    + timedelta(days=self._cfg.DGGS_CELL_EXPIRY_DAYS).total_seconds()
+                ),
             )
         )
         batch.commit()
+        return parkings

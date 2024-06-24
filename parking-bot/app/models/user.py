@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -26,7 +26,7 @@ class User(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Id: str
-    State: UserState
+    State: Annotated[UserState, "index"]
     Phone: Optional[str] = None
     Roles: list[RoleType]
     CarParks: Optional[list[str]] = []

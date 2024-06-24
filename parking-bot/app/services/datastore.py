@@ -2,6 +2,7 @@ import logging
 from typing import Any, Union
 
 from google.cloud.datastore import Batch, Client, Entity, Key
+from google.cloud.datastore.query import And, PropertyFilter, Query
 from pydantic import BaseModel
 
 import app.util.http_error as err
@@ -29,8 +30,24 @@ def to_entity(client: Client, obj: BaseModel) -> Entity:
     else:
         k = client.key(cls)
     entity = Entity(k)
+    # add indexed
+    for n, f in obj.model_fields.items():
+        if n != "Id" and "index" not in f.metadata:
+            entity.exclude_from_indexes.add(n)
     entity.update(**properties)
     return entity
+
+
+def _add_filters(query: Query, filters: list[tuple]) -> None:
+    if filters:
+        count = len(filters)
+        if count == 1:
+            query.add_filter(filter=PropertyFilter(*filters[0]))
+        elif count > 1:
+            pfilters = []
+            for prop, op, val in filters:
+                pfilters.append(PropertyFilter(prop, op, val))
+            query.add_filter(And(filters=pfilters))
 
 
 class BatchOperation(object):
@@ -50,12 +67,11 @@ class BatchOperation(object):
         entity = to_entity(self.client, obj)
         self.batch.put(entity)
 
-    def commit(self) -> bool:
+    def commit(self) -> None:
         try:
             self.batch.commit()
-        except:
-            return False
-        return True
+        except Exception as ex:
+            err.internal(str(ex))
 
 
 class Database(object):
@@ -121,7 +137,7 @@ class Database(object):
             ret = []
             for e in res:
                 properties = dict(e.items())
-                ret.append(objClass(Id=e.key.id, **properties))
+                ret.append(objClass(Id=e.key.id_or_name, **properties))
             return ret
         except Exception as ex:
             err.bad_request(str(ex))
@@ -149,7 +165,7 @@ class Database(object):
                 query = query.add_filter(*filter)
         try:
             keyList = list(query.fetch(**kwarks))
-            return [k.id for k in keyList]
+            return [k.id_or_name for k in keyList]
         except Exception as ex:
             logging.error(str(ex))
             err.bad_request(str(ex))
@@ -172,14 +188,12 @@ class Database(object):
         try:
             if "order" in kwarks:
                 query.order = kwarks["order"]
-            if filters:
-                for filter in filters:
-                    query = query.add_filter(*filter)
-            entList = list(query.fetch(**kwarks))
+            _add_filters(query=query, filters=filters)
+            entList: list[Entity] = list(query.fetch(**kwarks))
             resultSet = []
             for ent in entList:
                 properties = dict(ent.items())
-                obj = objClass(Id=ent.key.id, **properties)
+                obj = objClass(Id=ent.key.id_or_name, **properties)
                 resultSet.append(obj)
             return resultSet
         except Exception as ex:
@@ -204,7 +218,9 @@ class Database(object):
         return None
 
     def put_object(self, obj: BaseModel) -> None:
-        """[summary]
+        """Put object to db.
+
+        Only index fields annotated with 'index'.
 
         Args:
             obj (BaseModel): [description]
@@ -215,8 +231,8 @@ class Database(object):
         try:
             self.client.put(entity)
             if obj.Id == None:
-                if entity.key.id:
-                    obj.Id = entity.key.id
+                if entity.key.id_or_name:
+                    obj.Id = entity.key.id_or_name
                 else:
                     err.internal("database error")
         except Exception as ex:
@@ -269,9 +285,7 @@ class Database(object):
         """
         try:
             query = self.client.query(kind=objClass.__name__, **kwarks)
-            if filters:
-                for filter in filters:
-                    query = query.add_filter(*filter)
+            _add_filters(query=query, filters=filters)
             query.keys_only()
             result = list(query.fetch())
             self.client.delete_multi(result)

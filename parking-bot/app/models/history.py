@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -10,7 +10,7 @@ class HistoryItem(BaseModel):
 
     Id: Optional[int] = None
 
-    UserId: str
+    UserId: Annotated[str, "index"]
     ParkingCode: str
     DeviceId: str
     LicensePlate: str

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import BaseModel
 
@@ -14,7 +14,7 @@ class ParkingRequest(BaseModel):
 class ActiveParking(BaseModel):
     Id: Optional[int] = None
     CarParkId: str
-    UserId: str
+    UserId: Annotated[str, "index"]
 
     Type: CarParkType
     Start: int

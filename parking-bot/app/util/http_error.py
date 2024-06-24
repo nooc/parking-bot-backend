@@ -8,7 +8,7 @@ def __except(
     code: int, msg: str = None, level: int = logging.ERROR, do_log: bool = True
 ):
     if do_log:
-        logging.log(level=level, do_log=do_log, msg=f"{code}: {msg}")
+        logging.log(level=level, msg=f"{code}: {msg}")
     raise HTTPException(status_code=code, detail=msg)
 
 

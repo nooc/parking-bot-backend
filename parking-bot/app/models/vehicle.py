@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -16,7 +16,7 @@ class Vehicle(VehicleAdd):
 
 class VehicleDb(Vehicle):
     Id: Optional[int] = None
-    UserId: str
+    UserId: Annotated[str, "index"]
 
 
 class VehicleUpdate(BaseModel):

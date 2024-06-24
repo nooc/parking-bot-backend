@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -51,20 +52,11 @@ def init_user(
 ) -> str:
     if not __IDENTIFIER in jwtd:
         err.bad_request("No identifier")
-    id_ok = False
     # android secure device id is 64bit hex string
     try:
         int(jwtd[__IDENTIFIER], 16)
-        id_ok = True
     except:
-        pass
-    # ios
-    # try:
-    # ...
-    #    id_ok = True
-    # except: pass
-    if not id_ok:
-        err.bad_request()
+        err.bad_request("Invalid identifier")
     try:
         user = um.get_user(jwtd[__IDENTIFIER])
     except:

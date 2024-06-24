@@ -17,7 +17,7 @@ from app.services.userdata_manager import UserdataManager
 class TestSettings(app.config.Settings):
     __test__ = False
     model_config = SettingsConfigDict(
-        yaml_file="env.test.yml", yaml_file_encoding="utf-8", validate_default=False
+        yaml_file="env.pytest.yml", yaml_file_encoding="utf-8", validate_default=False
     )
 
     HS256_KEY: str
@@ -100,5 +100,5 @@ def userdata_manager(database, fernet) -> UserdataManager:
 
 
 @pytest.fixture(scope="session")
-def log_manager(database, fernet) -> ParkingHistoryManager:
+def history_manager(database, fernet) -> ParkingHistoryManager:
     return ParkingHistoryManager(database, fernet)

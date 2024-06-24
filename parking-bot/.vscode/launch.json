@@ -23,6 +23,7 @@
                 "GAE_DEPLOYMENT_ID": "xyz",
                 "GAE_INSTANCE": "xyz",
                 "GAE_REGION": "europe-west3",
+                "FAKE_AUTH":"1"
             },
             "jinja": true
         },

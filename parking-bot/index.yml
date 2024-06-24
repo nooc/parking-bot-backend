@@ -1,1 +1,27 @@
 indexes:
+
+- kind: User
+  ancestor: no
+  properties:
+  - name: State
+
+- kind: CarPark
+  ancestor: no
+  properties:
+  - name: CellId
+
+- kind: HistoryItem
+  ancestor: no
+  properties:
+  - name: UserId
+  - name: LicensePlate
+
+- kind: ActiveParking
+  ancestor: no
+  properties:
+  - name: UserId
+
+- kind: VehicleDb
+  ancestor: no
+  properties:
+  - name: UserId

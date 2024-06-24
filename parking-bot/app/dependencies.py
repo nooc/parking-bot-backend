@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import logging
+import os
 
 import httpx
 import jwt
@@ -16,7 +17,8 @@ from .models.user import User
 from .util import http_error as err
 from .util.dggs import Dggs
 
-__security = HTTPBearer(auto_error=True)  # raises forbidden/401 if no token
+__auth_err = "FAKE_AUTH" not in os.environ  # TODO: remove fake auth override
+__security = HTTPBearer(auto_error=__auth_err)  # raises forbidden/401 if no token
 __ht_client = httpx.Client(http2=True)
 
 
@@ -25,6 +27,9 @@ def get_cloud_tasks() -> CloudTasksClient:
 
 
 def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
+    # TODO: remove fake auth override
+    if "FAKE_AUTH" in os.environ:
+        return {"sub": "0a0a0a0a0a0a0a01", "identifier": "0a0a0a0a0a0a0a01"}
     try:
         jwt_payload: dict = jwt.decode(
             jwt=credentials.credentials,
@@ -151,17 +156,6 @@ def get_dggs() -> Dggs:
     return Dggs()
 
 
-from app.services.carpark_manager import CarParkManager
-
-
-def get_carpark_manager(
-    db: Database = Depends(get_db),
-    source: CarParkDataSource = Depends(get_carpark_data),
-    dggs: Database = Depends(get_dggs),
-) -> CarParkManager:
-    return CarParkManager(db=db, source=source, dggs=dggs, cfg=conf)
-
-
 from app.services.kiosk_manager import KioskManager
 
 
@@ -170,6 +164,18 @@ def get_kiosk(
     dggs: Database = Depends(get_dggs),
 ) -> KioskManager:
     return KioskManager(db=db, cfg=conf, client=__ht_client, dggs=dggs)
+
+
+from app.services.carpark_manager import CarParkManager
+
+
+def get_carpark_manager(
+    db: Database = Depends(get_db),
+    source: CarParkDataSource = Depends(get_carpark_data),
+    dggs: Database = Depends(get_dggs),
+    kiosk: KioskManager = Depends(get_kiosk),
+) -> CarParkManager:
+    return CarParkManager(db=db, source=source, dggs=dggs, cfg=conf, kiosk=kiosk)
 
 
 from app.services.parking_manager import ParkingManager

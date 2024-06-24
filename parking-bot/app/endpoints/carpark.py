@@ -42,7 +42,7 @@ def delete_carpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     id: int = Path(title="CarPark id"),
     current_user: User = Depends(get_user),
-) -> Any:
+) -> None:
     udata.remove_tollpark(user=current_user, carpark_id=id)
 
 
@@ -71,14 +71,14 @@ def delete_kiosk(
     udata: UserdataManager = Depends(get_userdata_manager),
     id: int = Path(title="Kiosk id"),
     current_user: User = Depends(get_user),
-) -> Any:
+) -> None:
     udata.remove_kioskpark(user=current_user, carpark_id=id)
 
 
 @router.get(
     "/geo",
     status_code=status.HTTP_200_OK,
-    summary="Get set of cells at lat/lon coordinate.",
+    summary="Get cell and neighbor cell ids at coordinate.",
 )
 def get_cells(
     dggs: Dggs = Depends(get_dggs),
@@ -96,7 +96,7 @@ def get_cells(
 )
 def get_cell_content(
     cpdata: CarParkManager = Depends(get_carpark_manager),
-    cell: float = Path(title="Cell id"),
+    cell: str = Path(title="Cell id"),
     current_user: User = Depends(get_user),
 ) -> list[CarPark]:
     return cpdata.get_carparks_by_cell_id(cell)

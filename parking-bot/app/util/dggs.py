@@ -1,18 +1,47 @@
 from typing import List
 
+from haversine import Unit, haversine
 from rhealpixdggs.dggs import WGS84_ELLIPSOID, Cell, RHEALPixDGGS
 
-RESOLUTION = 8  # Cell area: 2e+5, side: ~1.4km
+DEFAULT_RESOLUTION = 9
+RAD_MARGIN = 10  # m
 
 
 class Dggs:
     """Dggs helper using RHEALPixDGGS.
 
     see: https://raichev.net/files/rhealpix_dggs_preprint.pdf
+
+
+    resolution  area_m2  sqrt_area_m  cell_count
+    --------------------------------------------
+    0           8.5E+13  9.2E+06      6
+    1           9.5E+12  3.1E+06      54
+    2           1.1E+12  1E+06        4.9E+02
+    3           1.2E+11  3.4E+05      4.4E+03
+    4           1.3E+10  1.1E+05      3.9E+04
+    5           1.4E+09  3.8E+04      3.5E+05
+    6           1.6E+08  1.3E+04      3.2E+06
+    7           1.8E+07  4.2E+03      2.9E+07
+    8           2E+06    1.4E+03      2.6E+08
+    9           2.2E+05  4.7E+02      2.3E+09
+    10          2.4E+04  1.6E+02      2.1E+10
+    11          2.7E+03  52           1.9E+11
+    12          3E+02    17           1.7E+12
+    13          33       5.8          1.5E+13
+    14          3.7      1.9          1.4E+14
+    15          0.41     0.64         1.2E+15
     """
 
     RDGGS = RHEALPixDGGS(ellipsoid=WGS84_ELLIPSOID)
     VERTEX_OFFT = 0.001
+    resolution = DEFAULT_RESOLUTION
+
+    def __init__(self, resolution: int = 9):
+        self.resolution = resolution
+
+    def __str2id(self, suid: str) -> tuple:
+        return [suid[0]] + [int(e) for e in suid[1:]]
 
     def __reduce(self, c: Cell, res: int) -> Cell:
         if c.resolution > res:
@@ -129,16 +158,16 @@ class Dggs:
         """
         # Return cells in RESOLUTION.
         # Handle both cases resolution>RESOLUTION and resolution<RESOLUTION.
-        if cells[0].resolution < RESOLUTION:
+        if cells[0].resolution < self.resolution:
             # return subcells for cells
             cell_list = []
             for cell in cells:
-                sub_list = list(cell.subcells(resolution=RESOLUTION))
+                sub_list = list(cell.subcells(resolution=self.resolution))
                 cell_list.extend([str(c) for c in sub_list])
             return cell_list
-        elif cells[0].resolution > RESOLUTION:
+        elif cells[0].resolution > self.resolution:
             # return parent cells
-            diff = cells[0].resolution - RESOLUTION
+            diff = cells[0].resolution - self.resolution
             parents = dict.fromkeys([c.suid[0:-diff] for c in cells])
             return [str(c) for c in [Cell(rdggs=self.RDGGS, suid=p) for p in parents]]
         else:
@@ -146,7 +175,7 @@ class Dggs:
             return [str(c) for c in cells]
 
     def __get_cells(
-        self, cell: Cell, res: int = RESOLUTION, include_neighbors: bool = True
+        self, cell: Cell, res: int = DEFAULT_RESOLUTION, include_neighbors: bool = True
     ) -> List[str]:
         """Get cells at resolution RESOLUTION.
         Neighbors are calculated at resolution `res`.
@@ -159,15 +188,21 @@ class Dggs:
             List[str]: cell ids at RESOLUTION.
         """
         assert (
-            0 <= res <= RESOLUTION
-        ), f"Resolution must satisfy 0 <= res <= {RESOLUTION}."
+            0 <= res <= self.resolution
+        ), f"Resolution must satisfy 0 <= res <= {self.resolution}."
         result = [cell]
         if include_neighbors:
             result.extend(self.__get_neighbors(cell, res))
         return self.__return(result)
 
+    def get_cell(self, str_cell: str, res: int = DEFAULT_RESOLUTION) -> Cell:
+        return self.RDGGS.cell(suid=self.__str2id(str_cell))
+
     def get_cells(
-        self, str_cell: str, res: int = RESOLUTION, include_neighbors: bool = True
+        self,
+        str_cell: str,
+        res: int = DEFAULT_RESOLUTION,
+        include_neighbors: bool = True,
     ) -> List[str]:
         """Get cells at resolution RESOLUTION.
         Neighbors are calculated at resolution `res`.
@@ -180,18 +215,16 @@ class Dggs:
             List[str]: cell ids at RESOLUTION.
         """
         assert (
-            0 <= res <= RESOLUTION
-        ), f"Resolution must satisfy 0 <= res <= {RESOLUTION}."
-        head = [str_cell[0]]
-        tail = [int(e) for e in str_cell[1:]]
-        cell = self.RDGGS.cell(head + tail)
+            0 <= res <= self.resolution
+        ), f"Resolution must satisfy 0 <= res <= {self.resolution}."
+        cell = self.RDGGS.cell(suid=self.__str2id(str_cell))
         return self.__get_cells(cell, res=res, include_neighbors=include_neighbors)
 
     def lat_lon_to_cells(
         self,
         lat: float,
         lon: float,
-        res: int = RESOLUTION,
+        res: int = DEFAULT_RESOLUTION,
         include_neighbors: bool = True,
     ) -> List[str]:
         """Get gdds cell[s] at latitude and longitude.
@@ -211,5 +244,17 @@ class Dggs:
         cell = self.RDGGS.cell_from_point(res, (lon, lat), plane=False)
         return self.__get_cells(cell, res=res, include_neighbors=include_neighbors)
 
+    def cell_to_lat_lon_rad(self, str_cell: str) -> tuple[float, float, float]:
+        cell = self.RDGGS.cell(suid=self.__str2id(str_cell))
+        clon, clat = cell.centroid(plane=False)
+        points = cell.vertices(plane=False)
+        radius = 0
+        for plon, plat in points:
+            d = haversine((clat, clon), (plat, plon), unit=Unit.METERS)
+            if radius < d:
+                radius = d + RAD_MARGIN
 
-__all__ = ("Dggs", "RESOLUTION")
+        return float(clat), float(clon), radius
+
+
+__all__ = ("Dggs",)

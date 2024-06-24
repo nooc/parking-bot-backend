@@ -11,7 +11,7 @@ class CarParkId:
     @classmethod
     def toll_id(cl, inf: TollParkingInfo) -> str:
         hasher = blake2s(digest_size=10)
-        hasher.update(inf.Id)
+        hasher.update(inf.Id.encode())
         hasher.update(pack("f", inf.Lat))
         hasher.update(pack("f", inf.Long))
         return hasher.hexdigest()
@@ -19,7 +19,7 @@ class CarParkId:
     @classmethod
     def free_id(cl, inf: FreeParkingInfo) -> str:
         hasher = blake2s(digest_size=10)
-        hasher.update(inf.Id)
+        hasher.update(inf.Id.encode())
         hasher.update(pack("f", inf.Lat))
         hasher.update(pack("f", inf.Long))
         return hasher.hexdigest()

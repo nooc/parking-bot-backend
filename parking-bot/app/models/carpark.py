@@ -1,6 +1,6 @@
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 type CarParkType = Literal["toll", "kiosk", "free"]
 
@@ -11,11 +11,11 @@ class CarPark(BaseModel):
     # db id
     Id: Optional[str] = None
     # dggs cell this location belongs to
-    CellId: str
+    CellId: Annotated[str, "index"]
 
     Type: CarParkType
 
-    # json for models.external.*.*ParkingInfo
+    # json for models.external.*.*ParkingInfo in bytes
     Info: str
 
 
