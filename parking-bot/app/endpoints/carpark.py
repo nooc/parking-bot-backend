@@ -2,20 +2,17 @@ from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
-import app.util.http_error as err
 from app.dependencies import (
-    get_carpark_data,
-    get_carparkdata_manager,
+    get_carpark_manager,
     get_dggs,
     get_kiosk,
     get_user,
     get_userdata_manager,
 )
-from app.models.carpark import CarPark, SelectedCarParks
+from app.models.carpark import CarPark
 from app.models.external.kiosk import KioskParkingCreate
 from app.models.user import User
-from app.services.car_park_data import CarParkDataManager
-from app.services.gothenburg_open_data import CarParkDataSource
+from app.services.carpark_manager import CarParkManager
 from app.services.kiosk_manager import KioskManager
 from app.services.userdata_manager import UserdataManager
 from app.util.dggs import Dggs
@@ -34,7 +31,7 @@ def list_selected_carpark_ids(
 def select_carpark(
     udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
-    cpdata: CarParkDataManager = Depends(get_carparkdata_manager),
+    cpdata: CarParkManager = Depends(get_carpark_manager),
     id: str = Path(title="Car park id to add to selection."),
 ) -> None:
     udata.add_carpark(user=current_user, carpark_id=id)
@@ -51,15 +48,22 @@ def delete_carpark(
 
 @router.post("/kiosk", status_code=status.HTTP_200_OK)
 def add_kiosk(
-    udata: UserdataManager = Depends(get_userdata_manager),
     current_user: User = Depends(get_user),
     kiosk: KioskManager = Depends(get_kiosk),
     new_kiosk: KioskParkingCreate = Body(title="Kiosk parking to add to known kiosks."),
 ) -> None:
-    # TODO: check kiosk exists (try fetch kiosk info)
     kiosk.try_add_to_known_kiosks(
         id=new_kiosk.Id, lat=new_kiosk.Lat, lon=new_kiosk.Long
     )
+
+
+@router.put("/kiosk", status_code=status.HTTP_200_OK)
+def update_kiosk(
+    current_user: User = Depends(get_user),
+    kiosk: KioskManager = Depends(get_kiosk),
+    new_kiosk: KioskParkingCreate = Body(title="Kiosk parking to update."),
+) -> None:
+    kiosk.update_kiosks(id=new_kiosk.Id, lat=new_kiosk.Lat, lon=new_kiosk.Long)
 
 
 @router.delete("/kiosk/{id}", status_code=status.HTTP_200_OK)
@@ -91,7 +95,7 @@ def get_cells(
     summary="Get cell content by cell id.",
 )
 def get_cell_content(
-    cpdata: CarParkDataManager = Depends(get_carparkdata_manager),
+    cpdata: CarParkManager = Depends(get_carpark_manager),
     cell: float = Path(title="Cell id"),
     current_user: User = Depends(get_user),
 ) -> list[CarPark]:

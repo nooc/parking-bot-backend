@@ -1,4 +1,3 @@
-from app.models.carpark import SelectedKioskParkDb, SelectedTollParkDb
 from app.models.parking import ActiveParking
 from app.models.user import User, UserState
 from app.models.vehicle import VehicleDb

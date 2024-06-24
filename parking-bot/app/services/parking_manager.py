@@ -5,6 +5,7 @@ from app.services.datastore import Database
 from app.services.task_manager import TaskManager
 
 
+# TODO: parking manager
 class ParkingManager:
 
     def __init__(self, db: Database, cfg: Settings, tasks: TaskManager) -> None:

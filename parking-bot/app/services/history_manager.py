@@ -1,6 +1,6 @@
 from typing import List
 
-from app.models.history import ParkingOperationLog, ParkingOperationType
+from app.models.history import HistoryItem, HistoryType
 from app.models.user import User
 from app.services.data_manager import _DataManager
 
@@ -16,10 +16,10 @@ class ParkingHistoryManager(_DataManager):
         ParkingCode: str,
         DeviceId: str,
         LicensePlate: str,
-        Type: ParkingOperationType,
+        Type: HistoryType,
         Start: int,
         Stop: int,
-    ) -> ParkingOperationLog:
+    ) -> HistoryItem:
         log_data = dict(
             UserId=user.Id,
             ParkingCode=ParkingCode,
@@ -31,11 +31,11 @@ class ParkingHistoryManager(_DataManager):
             Stop=Stop,
         )
         log_data = self._shade(log_data)
-        log = ParkingOperationLog(**log_data)
+        log = HistoryItem(**log_data)
         self._db.put_object(log)
         return log
 
-    def list(self, user: User, **kwargs) -> List[ParkingOperationLog]:
+    def list(self, user: User, **kwargs) -> List[HistoryItem]:
         filters = [("UserId", "=", user.Id)]
         args = {}
         if "from_time" in kwargs:
@@ -45,9 +45,9 @@ class ParkingHistoryManager(_DataManager):
         if "limit" in kwargs:
             args["limit"] = kwargs["limit"]
         ret = self._db.get_objects_by_query(
-            ParkingOperationLog, filters=filters, order=["Stop"], **args
+            HistoryItem, filters=filters, order=["Stop"], **args
         )
-        return [ParkingOperationLog(**self._unshade(log_item)) for log_item in ret]
+        return [HistoryItem(**self._unshade(log_item)) for log_item in ret]
 
 
 __all__ = ("ParkingHistoryManager",)

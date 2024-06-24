@@ -17,7 +17,12 @@
                 "--ssl-certfile", "localhost+2.pem"
             ],
             "env": {
-                "GOOGLE_APPLICATION_CREDENTIALS":"parkingbot-421610-27e53c8789d5.json"
+                "GOOGLE_APPLICATION_CREDENTIALS":"parkingbot-421610-27e53c8789d5.json",
+                "GOOGLE_CLOUD_PROJECT": "parkingbot-421610",
+                "GAE_APPLICATION": "ParkingBot",
+                "GAE_DEPLOYMENT_ID": "xyz",
+                "GAE_INSTANCE": "xyz",
+                "GAE_REGION": "europe-west3",
             },
             "jinja": true
         },

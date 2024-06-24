@@ -2,9 +2,12 @@ import logging
 
 import httpx
 
+import app.util.http_error as err
 from app.config import Settings
+from app.models.carpark import CarPark
 from app.models.external.kiosk import KioskParkingInfo, KioskParkingInfoEx
 from app.services.datastore import Database
+from app.util.carpark_id import CarParkId
 from app.util.dggs import Dggs
 
 
@@ -70,3 +73,41 @@ class KioskManager:
                 self._db.put_object(kiosk)
         except Exception as ex:
             logging.warning(str(ex))
+
+    def update_kiosks(self, id: str, lat: float, lon: float) -> None:
+        """Update known kiosk info by setting provided lat/lon and refreshing info from source.
+
+        Args:
+            id (str): kiosk client id
+        Raises:
+            httpx.HTTPStatusError(404)
+        """
+        item: KioskParkingInfoEx = self._db.get_object(KioskParkingInfoEx, id)
+        if item:
+            try:
+                info = self.get_kiosk_info(id)
+                if info:
+                    item.CellId = self._dggs.lat_lon_to_cells(
+                        lat=lat, lon=lon, include_neighbors=False
+                    )[0]
+                    item.Lat = lat
+                    item.Long = lon
+                    self._db.put_object(item)
+                    self.__update_carpark(item)
+            except Exception as ex:
+                logging.warning(str(ex))
+        else:
+            err.not_found(f"Kiosk not found: {id}")
+
+    def __update_carpark(self, kiosk: KioskParkingInfoEx) -> None:
+        """Update CarPark containing the kiosk info.
+
+        Args:
+            kiosk (KioskParkingInfoEx): Updated kiosk info.
+        """
+        carpark_id = CarParkId.kiosk_id(kiosk)
+        item: CarPark = self._db.get_object(CarPark, carpark_id)
+        if item:
+            item.CellId = kiosk.CellId
+            item.Info = kiosk.model_dump_json()
+            self._db.put_object(item)

@@ -1,22 +1,22 @@
 from datetime import timedelta
-from hashlib import blake2s
 from time import time
 
 import app.util.http_error as err
 from app.config import Settings
-from app.models.carpark import CarPark, Kiosk, KnownKiosk
+from app.models.carpark import CarPark
 from app.models.cell import CellInfo
 from app.models.external.free import FreeParkingInfo
 from app.models.external.kiosk import KioskParkingInfo, KioskParkingInfoEx
 from app.models.external.toll import TollParkingInfo
 from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.kiosk_manager import KioskManager
+from app.util.carpark_id import CarParkId
 from app.util.dggs import Dggs
 
 from .datastore import Database
 
 
-class CarParkDataManager:
+class CarParkManager:
 
     def __init__(
         self,
@@ -96,7 +96,7 @@ class CarParkDataManager:
         parkings.extend(
             [
                 CarPark(
-                    Id=self._toll_id(inf),
+                    Id=CarParkId.toll_id(inf),
                     CellId=id,
                     Type="toll",
                     Info=inf.model_dump_json(),
@@ -112,7 +112,7 @@ class CarParkDataManager:
         parkings.extend(
             [
                 CarPark(
-                    Id=self._free_id(inf),
+                    Id=CarParkId.free_id(inf),
                     CellId=id,
                     Type="free",
                     Info=inf.model_dump_json(),
@@ -128,7 +128,7 @@ class CarParkDataManager:
         parkings.extend(
             [
                 CarPark(
-                    Id=self._kiosk_id(inf),
+                    Id=CarParkId.kiosk_id(inf),
                     CellId=id,
                     Type="kiosk",
                     Info=inf.model_dump_json(),
@@ -149,17 +149,3 @@ class CarParkDataManager:
             )
         )
         batch.commit()
-
-    @classmethod
-    def _toll_id(cl, inf: TollParkingInfo) -> str:
-        hasher = blake2s(data=f"{inf.Id}{inf.Lat}{inf.Long}", digest_size=10)
-        return "to" + hasher.hexdigest()
-
-    @classmethod
-    def _free_id(cl, inf: FreeParkingInfo) -> str:
-        hasher = blake2s(data=f"{inf.Id}{inf.Lat}{inf.Long}", digest_size=10)
-        return "fr" + hasher.hexdigest()
-
-    @classmethod
-    def _kiosk_id(cl, inf: KioskParkingInfo) -> str:
-        return "ki" + inf.externalId

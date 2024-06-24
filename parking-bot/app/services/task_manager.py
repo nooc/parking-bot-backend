@@ -1,19 +1,19 @@
 from datetime import datetime
 
-from google.cloud.tasks_v2 import HttpMethod, Task
+from google.cloud.tasks_v2 import CloudTasksClient, HttpMethod, Task
 from google.protobuf import timestamp_pb2
 from pydantic import BaseModel
 
-from app import tasks as client
 from app.config import Settings
 from app.util import http_error as err
 
 
 class TaskManager:
-    def __init__(self, cfg: Settings) -> None:
+    def __init__(self, client: CloudTasksClient, cfg: Settings) -> None:
         self.parent = client.queue_path(
             cfg.GOOGLE_CLOUD_PROJECT, cfg.GAE_REGION, cfg.TASK_QUEUE_NAME
         )
+        self._client = client
 
     def enqueue(
         self, task_object: BaseModel, schedule_time: datetime = None, name: str = None
