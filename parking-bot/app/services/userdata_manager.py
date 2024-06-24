@@ -1,8 +1,10 @@
 import app.util.http_error as err
-from app.models.carpark import SelectedKioskParkDb, SelectedTollParkDb
+from app.models.carpark import CarPark
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleDb
 from app.services.data_manager import _DataManager
+
+__SELECTABLE_TYPES = ["toll", "kiosk"]
 
 
 class UserdataManager(_DataManager):
@@ -12,51 +14,24 @@ class UserdataManager(_DataManager):
 
     # carparks
 
-    def list_toll_carparks(self, user: User) -> list[SelectedTollParkDb]:
-        return self._db.get_objects_by_query(
-            SelectedTollParkDb, [("UserId", "=", user.Id)]
+    def add_carpark(self, user: User, carpark_id: int) -> None:
+        if carpark_id in user.CarParks:
+            err.conflict("Id exists.")
+        carpark: CarPark = self._db.get_object(CarPark, carpark_id) or err.not_found(
+            "CarPark"
         )
+        if carpark.Type in __SELECTABLE_TYPES:
+            user.CarParks.append(carpark_id)
+            self._db.put_object(user)
+        else:
+            err.bad_request("CarPark type")
 
-    def list_kiosk_carparks(self, user: User) -> list[SelectedKioskParkDb]:
-        return self._db.get_objects_by_query(
-            SelectedKioskParkDb, [("UserId", "=", user.Id)]
-        )
-
-    def add_tollpark(
-        self, user: User, CarParkId: str, PhoneParkingCode: str
-    ) -> SelectedTollParkDb:
-        exists = self._db.find_object(
-            SelectedTollParkDb,
-            filters=[("UserId", "=", user.Id), ("CarParkId", "=", CarParkId)],
-        )
-        if exists:
-            err.conflict("Exists")
-        carpark = SelectedTollParkDb(
-            UserId=user.Id, CarParkId=CarParkId, PhoneParkingCode=PhoneParkingCode
-        )
-        self._db.put_object(carpark)
-        return carpark
-
-    def add_kiosk(self, user: User, KioskId: str) -> SelectedKioskParkDb:
-        exists = self._db.find_object(
-            SelectedKioskParkDb,
-            filters=[("UserId", "=", user.Id), ("KioskId", "=", KioskId)],
-        )
-        if exists:
-            err.conflict("Exists")
-        kiosk = SelectedKioskParkDb(UserId=user.Id, KioskId=KioskId)
-        self._db.put_object(kiosk)
-        return kiosk
-
-    def remove_tollpark(self, user: User, id: int) -> int:
-        return self._db.delete_by_query(
-            SelectedTollParkDb, filters=[("Id", "=", id), ("UserId", "=", user.Id)]
-        )
-
-    def remove_kiosk(self, user: User, id: int) -> int:
-        return self._db.delete_by_query(
-            SelectedKioskParkDb, filters=[("Id", "=", id), ("UserId", "=", user.Id)]
-        )
+    def remove_carpark(self, user: User, carpark_id: int) -> None:
+        if carpark_id in user.CarParks:
+            user.CarParks.remove(carpark_id)
+            self._db.put_object(user)
+        else:
+            err.not_found("Id not found.")
 
     # vehicles
 

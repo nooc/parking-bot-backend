@@ -27,14 +27,17 @@ class Settings(BaseSettings):
     RSA_PUB_APP: str
 
     SERVER_NAME: str
-    # GOOGLE_CLOUD_PROJECT: str
-    # GAE_APPLICATION: str
-    # GAE_DEPLOYMENT_ID: str
-    # GAE_INSTANCE: str
-    TASK_QUEUE_NAME: str
-    # GAE_REGION: str
+
+    # App engien env
+    GOOGLE_CLOUD_PROJECT: str
+    GAE_APPLICATION: str
+    GAE_DEPLOYMENT_ID: str
+    GAE_INSTANCE: str
+    GAE_REGION: str
+
     CREDENTIALS_JSON: str
     STORAGE_BUCKET: str
+    TASK_QUEUE_NAME: str
 
     SMTP_TLS: bool = True
     SMTP_PORT: int = 25
@@ -56,7 +59,9 @@ class Settings(BaseSettings):
     HS256_KEY: str = None
     JWT_ISSUER: str = "parkingbot"
     JWT_AUDIENCE: str = "parkingbot"
-    JWT_EXP_DAYS: Optional[int] = 1
+    JWT_EXP_DAYS: int = 1
+
+    DGGS_CELL_EXPIRY_DAYS: int = 50
 
     @classmethod
     def settings_customise_sources(

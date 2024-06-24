@@ -8,19 +8,20 @@ import jwt
 from cryptography.fernet import Fernet
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from google.cloud.tasks_v2 import CloudTasksClient
 
 from app.config import conf
-from app.services.log_manager import ParkingLogManager
 
 from .models.user import User
-from .services.carpark_data import CarParkDataSource
-from .services.datastore import Database
-from .services.user_manager import UserManager
-from .services.userdata_manager import UserdataManager
 from .util import http_error as err
+from .util.dggs import Dggs
 
 __security = HTTPBearer(auto_error=True)  # raises forbidden/401 if no token
 __ht_client = httpx.Client(http2=True)
+
+
+def get_cloud_tasks() -> CloudTasksClient:
+    return CloudTasksClient()
 
 
 def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> dict:
@@ -38,6 +39,8 @@ def get_jwt(credentials: HTTPAuthorizationCredentials = Depends(__security)) -> 
         msg = "Invalid claims"
     except Exception as ex:
         msg = str(ex)
+        logging.warn(msg)
+
     err.unauthorized(msg)
 
 
@@ -75,6 +78,9 @@ def get_cred_info() -> dict:
         err.internal(str(ex))
 
 
+from app.services.data_manager import Database
+
+
 def get_db(cred: dict = Depends(get_cred_info)) -> Database:
     try:
         db = Database(cred)
@@ -82,6 +88,9 @@ def get_db(cred: dict = Depends(get_cred_info)) -> Database:
         logging.error(ex)
         err.internal("Could not initialize database api.")
     return db
+
+
+from app.services.gothenburg_open_data import CarParkDataSource
 
 
 def get_carpark_data() -> CarParkDataSource:
@@ -92,14 +101,23 @@ def get_carpark_data() -> CarParkDataSource:
         err.internal("Could not get open data service.")
 
 
+from app.services.history_manager import ParkingHistoryManager
+
+
 def get_log_manager(
     db=Depends(get_db), fernet=Depends(get_fernet)
-) -> ParkingLogManager:
-    return ParkingLogManager(db, fernet)
+) -> ParkingHistoryManager:
+    return ParkingHistoryManager(db, fernet)
+
+
+from app.services.user_manager import UserManager
 
 
 def get_user_manager(db=Depends(get_db), fernet=Depends(get_fernet)) -> UserManager:
     return UserManager(db, fernet)
+
+
+from app.services.userdata_manager import UserdataManager
 
 
 def get_userdata_manager(
@@ -127,3 +145,48 @@ def get_superuser(
     if __role_check(user.Roles, "admin"):
         return user
     err.unauthorized("Privilege error.")
+
+
+def get_dggs() -> Dggs:
+    return Dggs()
+
+
+from app.services.carpark_manager import CarParkManager
+
+
+def get_carpark_manager(
+    db: Database = Depends(get_db),
+    source: CarParkDataSource = Depends(get_carpark_data),
+    dggs: Database = Depends(get_dggs),
+) -> CarParkManager:
+    return CarParkManager(db=db, source=source, dggs=dggs, cfg=conf)
+
+
+from app.services.kiosk_manager import KioskManager
+
+
+def get_kiosk(
+    db: Database = Depends(get_db),
+    dggs: Database = Depends(get_dggs),
+) -> KioskManager:
+    return KioskManager(db=db, cfg=conf, client=__ht_client, dggs=dggs)
+
+
+from app.services.parking_manager import ParkingManager
+
+
+def get_parking_manager(
+    db: Database = Depends(get_db),
+) -> ParkingManager:
+    return ParkingManager(db=db, cfg=conf, client=__ht_client)
+
+
+from app.services.task_manager import TaskManager
+
+
+def get_task_manager(
+    db: Database = Depends(get_db),
+    client=Depends(get_cloud_tasks),
+    parking: ParkingManager = Depends(get_parking_manager),
+) -> TaskManager:
+    return TaskManager(db=db, client=client, parking=parking, cfg=conf)
