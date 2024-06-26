@@ -7,8 +7,17 @@ from pydantic import BaseModel
 
 import app.util.http_error as err
 
+# IdType: string or integer
+type IdType = Union[int, str]
+# IdType: class name and string or integer id
+type EntityIdType = tuple[str, IdType]
+# Handle: Key or MaseModel with Id property or
+type Handle = Union[Key, BaseModel, EntityIdType]
+# FilterTuple: property, operation, value
+type FilterTuple = tuple[str, str, str]
 
-def to_key(client: Client, handle: Any) -> Key:
+
+def to_key(client: Client, handle: Handle) -> Key:
     if isinstance(handle, Key):
         # google.cloud.datastore.Key
         return handle
@@ -38,15 +47,13 @@ def to_entity(client: Client, obj: BaseModel) -> Entity:
     return entity
 
 
-def _add_filters(query: Query, filters: list[tuple]) -> None:
+def _add_filters(query: Query, filters: list[FilterTuple]) -> None:
     if filters:
         count = len(filters)
         if count == 1:
             query.add_filter(filter=PropertyFilter(*filters[0]))
         elif count > 1:
-            pfilters = []
-            for prop, op, val in filters:
-                pfilters.append(PropertyFilter(prop, op, val))
+            pfilters = [PropertyFilter(*f) for f in filters]
             query.add_filter(And(filters=pfilters))
 
 
@@ -59,7 +66,7 @@ class BatchOperation(object):
         self.batch = client.batch()
         self.batch.begin()
 
-    def delete(self, handle: Any):
+    def delete(self, handle: Handle):
         k = to_key(self.client, handle)
         self.batch.delete(k)
 
@@ -95,7 +102,7 @@ class Database(object):
         else:
             raise TypeError("cred must be dict or str.")
 
-    def get_object(self, objClass: Any, objId: Union[int, str]) -> BaseModel:
+    def get_object(self, objClass: Any, objId: IdType) -> BaseModel:
         """Get object from database
 
         Args:
@@ -116,9 +123,7 @@ class Database(object):
         except ValueError as ex:
             err.bad_request(str(ex))
 
-    def get_objects_by_id(
-        self, objClass: Any, ids: list[Union[int, str]]
-    ) -> list[BaseModel]:
+    def get_objects_by_id(self, objClass: Any, ids: list[IdType]) -> list[BaseModel]:
         """Get objects by their ids.
 
         Args:
@@ -143,8 +148,8 @@ class Database(object):
             err.bad_request(str(ex))
 
     def get_keys_by_query(
-        self, objClass: Any, filters: list[tuple] = None, **kwarks
-    ) -> list[Union[int, str]]:
+        self, objClass: Any, filters: list[FilterTuple] = None, **kwarks
+    ) -> list[IdType]:
         """Get list of keys by query.
 
         Args:
@@ -171,7 +176,7 @@ class Database(object):
             err.bad_request(str(ex))
 
     def get_objects_by_query(
-        self, objClass: Any, filters: list[tuple] = None, **kwarks
+        self, objClass: Any, filters: list[FilterTuple] = None, **kwarks
     ) -> list[BaseModel]:
         """[summary]
 
@@ -200,7 +205,9 @@ class Database(object):
             logging.error(str(ex))
             err.bad_request("get_objects_by_query")
 
-    def find_object(self, objClass: Any, filters: list[tuple] = None) -> BaseModel:
+    def find_object(
+        self, objClass: Any, filters: list[FilterTuple] = None
+    ) -> BaseModel:
         """_summary_
 
         Args:
@@ -239,11 +246,11 @@ class Database(object):
             logging.error(str(ex))
             err.internal("put_object")
 
-    def delete_object(self, handle: Any) -> None:
+    def delete_object(self, handle: Handle) -> None:
         """Delete an object by handle (Key or instance or tuple(class, id))
 
         Args:
-            handle (Any): [description]
+            handle (tuple[str,str|int]): Entity id
 
         Raises: HTTPException
         """
@@ -253,7 +260,7 @@ class Database(object):
             logging.error(ex)
             err.internal("delete_object")
 
-    def delete_objects(self, handles: list) -> None:
+    def delete_objects(self, handles: list[Handle]) -> None:
         """delete objects
 
         Args:
@@ -270,7 +277,7 @@ class Database(object):
             err.internal("delete_objects")
 
     def delete_by_query(
-        self, objClass: Any, filters: list[tuple] = None, **kwarks
+        self, objClass: Any, filters: list[FilterTuple] = None, **kwarks
     ) -> int:
         """delete by query
 
@@ -294,12 +301,10 @@ class Database(object):
             logging.error(ex)
             err.internal("delete_by_query")
 
-    def is_empty(self, objClass: Any, filters: list[tuple] = None) -> bool:
+    def is_empty(self, objClass: Any, filters: list[FilterTuple] = None) -> bool:
         try:
             query = self.client.query(kind=objClass.__name__)
-            if filters:
-                for filter in filters:
-                    query = query.add_filter(*filter)
+            _add_filters(query=query, filters=filters)
             query.keys_only()
             return list(query.fetch(limit=1)) == []
         except Exception as ex:

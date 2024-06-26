@@ -1,16 +1,20 @@
+from app.models.carpark import CarPark
 from app.models.parking import ActiveParking
 from app.models.user import User, UserState
 from app.models.vehicle import VehicleDb
 from app.services.data_manager import _DataManager
 from app.util import http_error as err
 
+__SELECTABLE_TYPES = ["toll", "kiosk"]
+
 
 class UserManager(_DataManager):
 
+    _SHADED = ["Phone"]
     _default_user_attr = {"Roles": ["user"], "State": UserState.Normal}
 
     def __init__(self, db, fernet):
-        super().__init__(db, fernet, ["Phone"])
+        super().__init__(db, fernet, self._SHADED)
 
     def create_user(self, Id: str) -> User:
         if self._db.find_object(User, [("Id", "=", Id)]) != None:
@@ -44,14 +48,36 @@ class UserManager(_DataManager):
         return returned
 
     def delete_user(self, user_id: str) -> None:
+        # TODO: if active toll parking, send push to end it
         user_filter = [("UserId", "=", user_id)]
         self._db.delete_by_query(ActiveParking, filters=user_filter)
         self._db.delete_by_query(VehicleDb, filters=user_filter)
-        self._db.delete_object((User, user_id))
+        self._db.delete_object(("User", user_id))
 
     def list_users(self, offset=0, limit=20) -> list[User]:
         users = self._db.get_objects_by_query(User, offset=offset, limit=limit)
         return [User(**self._unshade(u)) for u in users]
+
+    # selected carparks
+
+    def add_carpark(self, user: User, carpark_id: int) -> None:
+        if carpark_id in user.CarParks:
+            err.conflict("Id exists.")
+        carpark: CarPark = self._db.get_object(CarPark, carpark_id) or err.not_found(
+            "CarPark"
+        )
+        if carpark.Type in __SELECTABLE_TYPES:
+            user.CarParks.append(carpark_id)
+            self._db.put_object(user)
+        else:
+            err.bad_request("CarPark type")
+
+    def remove_carpark(self, user: User, carpark_id: int) -> None:
+        if carpark_id in user.CarParks:
+            user.CarParks.remove(carpark_id)
+            self._db.put_object(user)
+        else:
+            err.not_found("Id not found.")
 
 
 __all__ = ("UserManager",)

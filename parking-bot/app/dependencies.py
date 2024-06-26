@@ -95,6 +95,13 @@ def get_db(cred: dict = Depends(get_cred_info)) -> Database:
     return db
 
 
+from app.services.history_manager import HistoryManager
+
+
+def get_history_manager(db=Depends(get_db)) -> HistoryManager:
+    return HistoryManager(db=db)
+
+
 from app.services.gothenburg_open_data import CarParkDataSource
 
 
@@ -106,13 +113,11 @@ def get_carpark_data() -> CarParkDataSource:
         err.internal("Could not get open data service.")
 
 
-from app.services.history_manager import ParkingHistoryManager
+from app.services.history_manager import HistoryManager
 
 
-def get_log_manager(
-    db=Depends(get_db), fernet=Depends(get_fernet)
-) -> ParkingHistoryManager:
-    return ParkingHistoryManager(db, fernet)
+def get_log_manager(db=Depends(get_db), fernet=Depends(get_fernet)) -> HistoryManager:
+    return HistoryManager(db, fernet)
 
 
 from app.services.user_manager import UserManager
@@ -122,13 +127,13 @@ def get_user_manager(db=Depends(get_db), fernet=Depends(get_fernet)) -> UserMana
     return UserManager(db, fernet)
 
 
-from app.services.userdata_manager import UserdataManager
+from app.services.vehicle_manager import UserdataManager, VehicleManager
 
 
-def get_userdata_manager(
+def get_vehicle_manager(
     db: Database = Depends(get_db), fernet=Depends(get_fernet)
-) -> UserdataManager:
-    return UserdataManager(db, fernet)
+) -> VehicleManager:
+    return VehicleManager(db, fernet)
 
 
 def get_user(
@@ -159,7 +164,7 @@ def get_dggs() -> Dggs:
 from app.services.kiosk_manager import KioskManager
 
 
-def get_kiosk(
+def get_kiosk_manager(
     db: Database = Depends(get_db),
     dggs: Database = Depends(get_dggs),
 ) -> KioskManager:
@@ -173,7 +178,7 @@ def get_carpark_manager(
     db: Database = Depends(get_db),
     source: CarParkDataSource = Depends(get_carpark_data),
     dggs: Database = Depends(get_dggs),
-    kiosk: KioskManager = Depends(get_kiosk),
+    kiosk: KioskManager = Depends(get_kiosk_manager),
 ) -> CarParkManager:
     return CarParkManager(db=db, source=source, dggs=dggs, cfg=conf, kiosk=kiosk)
 
@@ -183,8 +188,20 @@ from app.services.parking_manager import ParkingManager
 
 def get_parking_manager(
     db: Database = Depends(get_db),
+    carparks: CarParkManager = Depends(get_carpark_manager),
+    vehicles: VehicleManager = Depends(get_vehicle_manager),
+    history: HistoryManager = Depends(get_history_manager),
+    kiosk: KioskManager = Depends(get_kiosk_manager),
 ) -> ParkingManager:
-    return ParkingManager(db=db, cfg=conf, client=__ht_client)
+    return ParkingManager(
+        db=db,
+        cfg=conf,
+        client=__ht_client,
+        carparks=carparks,
+        vehicles=vehicles,
+        history=history,
+        kiosk=kiosk,
+    )
 
 
 from app.services.task_manager import TaskManager

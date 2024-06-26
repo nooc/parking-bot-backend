@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Path, status
 from app.dependencies import get_user, get_userdata_manager
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleAdd, VehicleDb, VehicleUpdate
-from app.services.userdata_manager import UserdataManager
+from app.services.vehicle_manager import UserdataManager
 
 router = APIRouter()
 

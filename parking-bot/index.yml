@@ -14,7 +14,7 @@ indexes:
   ancestor: no
   properties:
   - name: UserId
-  - name: LicensePlate
+  - name: Timestamp
 
 - kind: ActiveParking
   ancestor: no

@@ -24,7 +24,7 @@ from app.models.user import User, UserUpdate
 from app.models.vehicle import Vehicle, VehicleDb
 from app.services.datastore import Database
 from app.services.user_manager import UserManager
-from app.services.userdata_manager import UserdataManager
+from app.services.vehicle_manager import UserdataManager
 
 router = APIRouter()
 

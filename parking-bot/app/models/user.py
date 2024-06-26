@@ -19,6 +19,8 @@ class UserUpdate(BaseModel):
     CarParks: Optional[list[str]] = None
     Roles: Optional[list[RoleType]] = None
     State: Optional[UserState] = None
+    Reminders: Optional[bool] = True
+    PushToken: Optional[str] = None
 
 
 # Db object
@@ -26,7 +28,9 @@ class User(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Id: str
+    PushToken: Optional[str] = None
     State: Annotated[UserState, "index"]
+    Reminders: Optional[bool] = True
     Phone: Optional[str] = None
     Roles: list[RoleType]
     CarParks: Optional[list[str]] = []

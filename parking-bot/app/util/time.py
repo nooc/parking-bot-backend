@@ -2,6 +2,10 @@ import time
 from datetime import datetime
 
 
+def get_utc_seconds() -> int:
+    return int(time.time())
+
+
 def get_utc_millis() -> int:
     return int(time.time() * 1000)
 

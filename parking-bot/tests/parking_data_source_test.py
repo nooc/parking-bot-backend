@@ -12,7 +12,7 @@ def test_get_nearby_free_parking(parking_data):
     id = "1480 2007-00933"
 
     parkings = parking_data.get_nearby_free_parking(
-        57.70097712135818, 11.993808746337892, 500
+        57.70097712135818, 11.993808746337892, 300
     )
     assert [p for p in parkings if p.Id == id] != []
 

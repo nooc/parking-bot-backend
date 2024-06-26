@@ -9,9 +9,9 @@ import app.config
 from app import parkingbot
 from app.dependencies import get_db, get_fernet
 from app.services.gothenburg_open_data import CarParkDataSource
-from app.services.history_manager import ParkingHistoryManager
+from app.services.history_manager import HistoryManager
 from app.services.user_manager import UserManager
-from app.services.userdata_manager import UserdataManager
+from app.services.vehicle_manager import UserdataManager
 
 
 class TestSettings(app.config.Settings):
@@ -100,5 +100,5 @@ def userdata_manager(database, fernet) -> UserdataManager:
 
 
 @pytest.fixture(scope="session")
-def history_manager(database, fernet) -> ParkingHistoryManager:
-    return ParkingHistoryManager(database, fernet)
+def history_manager(database, fernet) -> HistoryManager:
+    return HistoryManager(database, fernet)

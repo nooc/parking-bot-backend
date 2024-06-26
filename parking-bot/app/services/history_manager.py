@@ -2,33 +2,39 @@ from typing import List
 
 from app.models.history import HistoryItem, HistoryType
 from app.models.user import User
-from app.services.data_manager import _DataManager
 
 
-class ParkingHistoryManager(_DataManager):
+class HistoryManager:
 
-    def __init__(self, db, fernet):
-        super().__init__(db, fernet, ["LicensePlate", "Phone"])
+    def __init__(self, db):
+        self._db = db
 
-    def log(
+    def add(
         self,
         user: User,
-        ParkingCode: str,
-        DeviceId: str,
-        LicensePlate: str,
-        Type: HistoryType,
-        Start: int,
-        Stop: int,
+        type: HistoryType,
+        timestamp: int,
+        carpark_id: str = None,
+        vehicle_id: int = None,
     ) -> HistoryItem:
+        """_summary_
+
+        Args:
+            user (User): Current user
+            type (HistoryType): Type of log
+            timestamp (int): Timestamp as UTC seconds
+            carpark_id (str, optional): CarPark id
+            vehicle_id (int, optional): Vehicle id
+
+        Returns:
+            HistoryItem: _description_
+        """
         log_data = dict(
             UserId=user.Id,
-            ParkingCode=ParkingCode,
-            DeviceId=DeviceId,
-            LicensePlate=LicensePlate,
-            Phone=user.Phone,
-            Type=Type,
-            Start=Start,
-            Stop=Stop,
+            Type=type,
+            Timestamp=timestamp,
+            CarParkId=carpark_id,
+            VehicleId=vehicle_id,
         )
         log_data = self._shade(log_data)
         log = HistoryItem(**log_data)
@@ -45,9 +51,9 @@ class ParkingHistoryManager(_DataManager):
         if "limit" in kwargs:
             args["limit"] = kwargs["limit"]
         ret = self._db.get_objects_by_query(
-            HistoryItem, filters=filters, order=["Stop"], **args
+            HistoryItem, filters=filters, order=["-Timestamp"], **args
         )
         return [HistoryItem(**self._unshade(log_item)) for log_item in ret]
 
 
-__all__ = ("ParkingHistoryManager",)
+__all__ = ("HistoryManager",)

@@ -5,16 +5,17 @@ from pydantic import BaseModel
 from app.models.carpark import CarParkType
 
 
-# TODO: Do we need this?
 class ParkingRequest(BaseModel):
     # CarPark id
-    Id: str
+    CarParkId: str
+    VehicleId: int
 
 
 class ActiveParking(BaseModel):
     Id: Optional[int] = None
-    CarParkId: str
+    CarParkId: Annotated[str, "index"]
     UserId: Annotated[str, "index"]
+    VehicleId: int
 
     Type: CarParkType
     Start: int

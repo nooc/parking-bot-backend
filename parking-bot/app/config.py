@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     GBG_DATA_TOLL_ITEM: str
     GBG_DATA_FREE_LIST: str
     GBG_DATA_FREE_ITEM: str
-    GBG_PARKING_KIOSK_INFO_URL: AnyHttpUrl
+    GBG_PARKING_KIOSK_BASE_URL: AnyHttpUrl
 
     FERNET_KEY: str = None
     HS256_KEY: str = None

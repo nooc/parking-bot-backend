@@ -21,7 +21,7 @@ def list_users(
     return um.list_users(offset=offset, limit=limit)
 
 
-@router.get("/user/{id}")
+@router.get("/users/{id}")
 def get_user(
     um: UserManager = Depends(get_user_manager),
     id: str = Path(title="User id."),
@@ -30,7 +30,7 @@ def get_user(
     return um.get_user(id)
 
 
-@router.post("/user")
+@router.post("/users")
 def create_user(
     identifier: str = Query(title="Identifier"),
     current_user: User = Depends(get_superuser),
@@ -40,7 +40,7 @@ def create_user(
     raise NotImplementedError()
 
 
-@router.put("/user/{id}", status_code=status.HTTP_200_OK)
+@router.put("/users/{id}", status_code=status.HTTP_200_OK)
 def update_user(
     um: UserManager = Depends(get_user_manager),
     current_user: User = Depends(get_superuser),
@@ -51,10 +51,10 @@ def update_user(
     return um.update_user(user, **user_data.model_dump(exclude_unset=True))
 
 
-@router.delete("/user/{id}", status_code=status.HTTP_200_OK)
+@router.delete("/users/{id}", status_code=status.HTTP_200_OK)
 def delete_user(
     um: UserManager = Depends(get_user_manager),
     current_user: User = Depends(get_superuser),
     id: str = Path(title="User id"),
 ) -> Any:
-    um.delete_user(current_user)
+    um.delete_user(id)

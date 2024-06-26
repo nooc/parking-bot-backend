@@ -1,27 +1,45 @@
+import enum
 import logging
+from typing import Literal
 
 import httpx
 
 import app.util.http_error as err
 from app.config import Settings
 from app.models.carpark import CarPark
-from app.models.external.kiosk import KioskParkingInfo, KioskParkingInfoEx
+from app.models.external.kiosk import (
+    KioskParkingInfo,
+    KioskParkingInfoEx,
+    KioskParkingRequest,
+    KioskParkingResponse,
+)
+from app.models.user import User
+from app.models.vehicle import VehicleDb
 from app.services.datastore import Database
 from app.util.carpark_id import CarParkId
 from app.util.dggs import Dggs
 
 
+class AssignmentResponse(enum.IntEnum):
+    OK = 0
+    FULL = 1
+    UNAVAILABLE = 2
+
+
 class KioskManager:
 
+    __GET_INFO = "?externalId={CLIENTID}"
+    __POST_ASSIGNMENT = "/assignment"
+
     _client: httpx.Client
-    _url: str
+    _base_url: str
 
     def __init__(
         self, db: Database, cfg: Settings, client: httpx.Client, dggs: Dggs
     ) -> None:
         self._db = db
         self._client = client
-        self._url = cfg.GBG_PARKING_KIOSK_INFO_URL
+        self._base_url = cfg.GBG_PARKING_KIOSK_BASE_URL
         self._dggs = dggs
 
     def get_kiosk_info(self, id: str) -> KioskParkingInfo:
@@ -35,7 +53,7 @@ class KioskManager:
         Raises:
             HttpStatusError on 400+
         """
-        url = self._url.replace("{CLIENTID}", id)
+        url = f"{self._base_url}{self.__GET_INFO}".replace("{CLIENTID}", id)
         resp = self._client.get(url)
         resp.raise_for_status()
         return KioskParkingInfo(**resp.json())
@@ -111,3 +129,32 @@ class KioskManager:
             item.CellId = kiosk.CellId
             item.Info = kiosk.model_dump_json()
             self._db.put_object(item)
+
+    def try_park(
+        self,
+        user: User,
+        kiosk: KioskParkingInfoEx,
+        vehicle: VehicleDb,
+    ) -> tuple[AssignmentResponse, KioskParkingResponse]:
+        url = f"{self._base_url}{self.__POST_ASSIGNMENT}"
+        body = KioskParkingRequest(
+            externalId=kiosk.externalId,
+            registrationNumber=vehicle.LicensePlate,
+            phoneNumber=user.Phone,
+            setEndTimeReminder=user.Reminders,
+        )
+        resp = self._client.post(url, json=body)  # TODO: can we set json to BaseModel?
+        match resp.status_code:
+            case 424:
+                return AssignmentResponse.UNAVAILABLE, None
+            case 0:  # TODO: find out response code when full
+                return AssignmentResponse.FULL, None
+            case 200:
+                return AssignmentResponse.OK, KioskParkingResponse.model_validate_json(
+                    resp.content
+                )
+            case _:
+                err.internal(f"Unexpected response from kiosk: {resp.status_code}")
+
+
+__all__ = ("KioskManager", "AssignmentResponse")

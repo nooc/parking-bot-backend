@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 from app.dependencies import (
     get_carpark_manager,
     get_dggs,
-    get_kiosk,
+    get_kiosk_manager,
     get_user,
     get_userdata_manager,
 )
@@ -14,7 +14,7 @@ from app.models.external.kiosk import KioskParkingCreate
 from app.models.user import User
 from app.services.carpark_manager import CarParkManager
 from app.services.kiosk_manager import KioskManager
-from app.services.userdata_manager import UserdataManager
+from app.services.vehicle_manager import UserdataManager
 from app.util.dggs import Dggs
 
 router = APIRouter()
@@ -49,7 +49,7 @@ def delete_carpark(
 @router.post("/kiosk", status_code=status.HTTP_200_OK)
 def add_kiosk(
     current_user: User = Depends(get_user),
-    kiosk: KioskManager = Depends(get_kiosk),
+    kiosk: KioskManager = Depends(get_kiosk_manager),
     new_kiosk: KioskParkingCreate = Body(title="Kiosk parking to add to known kiosks."),
 ) -> None:
     kiosk.try_add_to_known_kiosks(
@@ -60,7 +60,7 @@ def add_kiosk(
 @router.put("/kiosk", status_code=status.HTTP_200_OK)
 def update_kiosk(
     current_user: User = Depends(get_user),
-    kiosk: KioskManager = Depends(get_kiosk),
+    kiosk: KioskManager = Depends(get_kiosk_manager),
     new_kiosk: KioskParkingCreate = Body(title="Kiosk parking to update."),
 ) -> None:
     kiosk.update_kiosks(id=new_kiosk.Id, lat=new_kiosk.Lat, lon=new_kiosk.Long)

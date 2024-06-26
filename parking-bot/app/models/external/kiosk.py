@@ -33,3 +33,18 @@ class KioskParkingInfoEx(KioskParkingInfo):
     Long: float
     CellId: str
     WKT: str
+
+
+class KioskParkingRequest(BaseModel):
+    externalId: str
+    registrationNumber: str
+    name: Optional[str] = ""
+    phoneNumber: str
+    setEndTimeReminder: Optional[bool] = True
+
+
+class KioskParkingResponse(BaseModel):
+    endTime: str  # 2023-12-31T16:19:13.8622192+01:00
+    endTimeText: str  # 1 timme 59 minuter
+    isLimited: bool  # false
+    limitationText: Optional[str] = None
