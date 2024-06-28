@@ -1,13 +1,12 @@
-from typing import Any, List
+import base64
+from typing import Any
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, Path, status
 
 from app.dependencies import get_parking_manager, get_user
 from app.models.parking import ParkingRequest
 from app.models.user import User
-from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.parking_manager import ParkingManager
-from app.services.vehicle_manager import UserdataManager
 
 router = APIRouter()
 
@@ -45,6 +44,29 @@ def request_parking(
         user=current_user,
         carpark_id=parking_request.CarParkId,
         vehicle_id=parking_request.VehicleId,
+    )
+
+
+@router.get(
+    "/retry/{payload}",
+    status_code=status.HTTP_200_OK,
+    description="""Retry kiosk""",
+)
+def request_parking(
+    retry_payload: str = Path(
+        description="Retry payload as an url safe base64 of ParkingRequest json"
+    ),
+    current_user: User = Depends(get_user),
+    parking_mgr: ParkingManager = Depends(get_parking_manager),
+) -> Any:
+    # decode retry payload as ParkingRequest
+    retry_request = ParkingRequest.model_validate_json(
+        base64.urlsafe_b64decode(retry_payload)
+    )
+    parking_mgr.request(
+        user=current_user,
+        carpark_id=retry_request.CarParkId,
+        vehicle_id=retry_request.VehicleId,
     )
 
 

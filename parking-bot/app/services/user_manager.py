@@ -2,24 +2,25 @@ from app.models.carpark import CarPark
 from app.models.parking import ActiveParking
 from app.models.user import User, UserState
 from app.models.vehicle import VehicleDb
-from app.services.data_manager import _DataManager
 from app.util import http_error as err
+from app.util.property_shader import PropertyShader
 
 __SELECTABLE_TYPES = ["toll", "kiosk"]
 
 
-class UserManager(_DataManager):
+class UserManager(PropertyShader):
 
     _SHADED = ["Phone"]
     _default_user_attr = {"Roles": ["user"], "State": UserState.Normal}
 
     def __init__(self, db, fernet):
-        super().__init__(db, fernet, self._SHADED)
+        super().__init__(fernet=fernet, shaded_keys=self._SHADED)
+        self._db = db
 
-    def create_user(self, Id: str) -> User:
-        if self._db.find_object(User, [("Id", "=", Id)]) != None:
+    def create_user(self, id: str) -> User:
+        if self._db.find_object(User, [("Id", "=", id)]) != None:
             err.conflict("Exists.")
-        plain_data = dict(Id=Id, **self._default_user_attr)
+        plain_data = dict(Id=id, **self._default_user_attr)
         data = self._shade(plain_data)
         new_user = User(**data)
         self._db.put_object(new_user)

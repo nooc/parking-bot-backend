@@ -15,11 +15,9 @@ class ActiveParking(BaseModel):
     Id: Optional[int] = None
     CarParkId: Annotated[str, "index"]
     UserId: Annotated[str, "index"]
-    VehicleId: int
-
-    Type: CarParkType
-    Start: int
-    Stop: int
+    VehicleId: Annotated[int, "index"]
+    Type: Annotated[CarParkType, "index"]
+    Timestamp: Annotated[Optional[int], "index"] = None
 
 
 __all__ = ("ParkingRequest", "ActiveParking")

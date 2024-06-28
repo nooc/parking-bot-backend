@@ -1,5 +1,3 @@
-from typing import Any, List
-
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
 from app.dependencies import (
@@ -7,14 +5,14 @@ from app.dependencies import (
     get_dggs,
     get_kiosk_manager,
     get_user,
-    get_userdata_manager,
+    get_user_manager,
 )
 from app.models.carpark import CarPark
 from app.models.external.kiosk import KioskParkingCreate
 from app.models.user import User
 from app.services.carpark_manager import CarParkManager
 from app.services.kiosk_manager import KioskManager
-from app.services.vehicle_manager import UserdataManager
+from app.services.user_manager import UserManager
 from app.util.dggs import Dggs
 
 router = APIRouter()
@@ -29,9 +27,8 @@ def list_selected_carpark_ids(
 
 @router.post("/{id}", status_code=status.HTTP_200_OK)
 def select_carpark(
-    udata: UserdataManager = Depends(get_userdata_manager),
+    udata: UserManager = Depends(get_user_manager),
     current_user: User = Depends(get_user),
-    cpdata: CarParkManager = Depends(get_carpark_manager),
     id: str = Path(title="Car park id to add to selection."),
 ) -> None:
     udata.add_carpark(user=current_user, carpark_id=id)
@@ -39,11 +36,11 @@ def select_carpark(
 
 @router.delete("/toll/{id}", status_code=status.HTTP_200_OK)
 def delete_carpark(
-    udata: UserdataManager = Depends(get_userdata_manager),
+    udata: UserManager = Depends(get_user_manager),
     id: int = Path(title="CarPark id"),
     current_user: User = Depends(get_user),
 ) -> None:
-    udata.remove_tollpark(user=current_user, carpark_id=id)
+    udata.remove_carpark(user=current_user, carpark_id=id)
 
 
 @router.post("/kiosk", status_code=status.HTTP_200_OK)
@@ -68,11 +65,11 @@ def update_kiosk(
 
 @router.delete("/kiosk/{id}", status_code=status.HTTP_200_OK)
 def delete_kiosk(
-    udata: UserdataManager = Depends(get_userdata_manager),
+    udata: UserManager = Depends(get_user_manager),
     id: int = Path(title="Kiosk id"),
     current_user: User = Depends(get_user),
 ) -> None:
-    udata.remove_kioskpark(user=current_user, carpark_id=id)
+    udata.remove_carpark(user=current_user, carpark_id=id)
 
 
 @router.get(
@@ -99,4 +96,4 @@ def get_cell_content(
     cell: str = Path(title="Cell id"),
     current_user: User = Depends(get_user),
 ) -> list[CarPark]:
-    return cpdata.get_carparks_by_cell_id(cell)
+    return cpdata.get_carparks_by_cell_id(id=cell)

@@ -2,11 +2,12 @@ from typing import List
 
 from app.models.history import HistoryItem, HistoryType
 from app.models.user import User
+from app.services.datastore import Database
 
 
 class HistoryManager:
 
-    def __init__(self, db):
+    def __init__(self, db: Database):
         self._db = db
 
     def add(
@@ -29,17 +30,15 @@ class HistoryManager:
         Returns:
             HistoryItem: _description_
         """
-        log_data = dict(
+        item = HistoryItem(
             UserId=user.Id,
             Type=type,
             Timestamp=timestamp,
             CarParkId=carpark_id,
             VehicleId=vehicle_id,
         )
-        log_data = self._shade(log_data)
-        log = HistoryItem(**log_data)
-        self._db.put_object(log)
-        return log
+        self._db.put_object(item)
+        return item
 
     def list(self, user: User, **kwargs) -> List[HistoryItem]:
         filters = [("UserId", "=", user.Id)]
@@ -53,7 +52,7 @@ class HistoryManager:
         ret = self._db.get_objects_by_query(
             HistoryItem, filters=filters, order=["-Timestamp"], **args
         )
-        return [HistoryItem(**self._unshade(log_item)) for log_item in ret]
+        return ret
 
 
 __all__ = ("HistoryManager",)

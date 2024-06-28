@@ -18,4 +18,6 @@ def list_parking_operations(
     offset: int = Query(0, title="List offset.", ge=0),
     limit: int = Query(20, title="Max Number of results.", gt=0),
 ) -> List[HistoryItem]:
-    return log_mgr.list(current_user, from_time=from_time, offset=offset, limit=limit)
+    return log_mgr.list(
+        user=current_user, from_time=from_time, offset=offset, limit=limit
+    )

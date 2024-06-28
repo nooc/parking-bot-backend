@@ -75,21 +75,36 @@ class ParkingManager:
         )
 
     def __request_kiosk(self, user: User, vehicle: VehicleDb, carpark: CarPark) -> None:
+        # try start kiosk
         kiosk = KioskParkingInfoEx.model_validate_json(carpark.Info)
         status, response = self._kiosk.try_park(user=user, kiosk=kiosk, vehicle=vehicle)
         match status:
             case AssignmentResponse.OK:
                 self.__push_kiosk_success()
             case AssignmentResponse.FULL:
+                # full parking generates clickable notification where user can retry parking
                 self.__push_kiosk_full()
             case AssignmentResponse.UNAVAILABLE:
                 self.__push_kiosk_unavailable()
             case _:
                 raise RuntimeError()
+        active = ActiveParking(
+            UserId=user.Id,
+            VehicleId=vehicle.Id,
+            CarParkId=carpark.Id,
+            Type="kiosk",
+            Timestamp=get_utc_seconds(),
+        )
+        self._db.put_object(active)
 
     def __request_toll(self, user, vehicle, carpark) -> None:
-        # TODO: create active parking and send id
-        raise NotImplementedError(__name__)
+        # create active parking and send id
+        # app should start parkind and update starting timestamp or delete parking on fail
+        active = ActiveParking(
+            UserId=user.Id, VehicleId=vehicle.Id, CarParkId=carpark.Id, Type="toll"
+        )
+        self._db.put_object(active)
+        self.__push_toll_ack(active.Id)
 
     def __push_kiosk_success():
         pass  # TODO: __push_kiosk_success

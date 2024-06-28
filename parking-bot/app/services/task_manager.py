@@ -37,5 +37,5 @@ class TaskManager:
             task["schedule_time"] = st_pb
 
         # File the task
-        response = client.create_task(parent=self.parent, task=task)
+        response = self._client.create_task(parent=self.parent, task=task)
         return response or err.internal(f"Could not create task {name}.")

@@ -1,6 +1,5 @@
 import enum
 import logging
-from typing import Literal
 
 import httpx
 

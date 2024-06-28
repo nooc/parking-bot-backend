@@ -28,11 +28,12 @@ class User(BaseModel):
     model_config = ConfigDict(from_attributes=True, str_strip_whitespace=True)
 
     Id: str
-    PushToken: Optional[str] = None
     State: Annotated[UserState, "index"]
-    Reminders: Optional[bool] = True
-    Phone: Optional[str] = None
     Roles: list[RoleType]
+    PushToken: Optional[str] = None
+
+    Phone: Optional[str] = None
+    Reminders: Optional[bool] = True
     CarParks: Optional[list[str]] = []
 
 

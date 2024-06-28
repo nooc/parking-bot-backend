@@ -29,11 +29,11 @@ class Settings(BaseSettings):
     SERVER_NAME: str
 
     # App engien env
-    GOOGLE_CLOUD_PROJECT: str
-    GAE_APPLICATION: str
-    GAE_DEPLOYMENT_ID: str
-    GAE_INSTANCE: str
-    GAE_REGION: str
+    GOOGLE_CLOUD_PROJECT: str = None
+    GAE_APPLICATION: str = None
+    GAE_DEPLOYMENT_ID: str = None
+    GAE_INSTANCE: str = None
+    GAE_REGION: str = None
 
     CREDENTIALS_JSON: str
     STORAGE_BUCKET: str

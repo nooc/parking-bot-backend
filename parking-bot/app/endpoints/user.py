@@ -1,11 +1,10 @@
 import logging
-import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
 import jwt.utils
-from fastapi import APIRouter, Body, Depends, Query, status
+from fastapi import APIRouter, Body, Depends, status
 from fastapi.responses import PlainTextResponse
 
 import app.util.http_error as err
@@ -15,16 +14,15 @@ from app.dependencies import (
     get_jwt,
     get_user,
     get_user_manager,
-    get_userdata_manager,
+    get_vehicle_manager,
 )
 from app.endpoints.media_types import MEDIA_TYPE_JSON
 from app.models.carpark import *
 from app.models.response.userdata import UserData
 from app.models.user import User, UserUpdate
-from app.models.vehicle import Vehicle, VehicleDb
-from app.services.datastore import Database
+from app.models.vehicle import Vehicle
 from app.services.user_manager import UserManager
-from app.services.vehicle_manager import UserdataManager
+from app.services.vehicle_manager import VehicleManager
 
 router = APIRouter()
 
@@ -63,7 +61,7 @@ def init_user(
         user = None
     if not user:
         logging.info('Creating user "%s"', jwtd[__IDENTIFIER])
-        user = um.create_user(Id=jwtd[__IDENTIFIER])
+        user = um.create_user(id=jwtd[__IDENTIFIER])
     if not user:
         err.internal("Could not create user.")
     dt = datetime.now(UTC)
@@ -97,16 +95,17 @@ def delete_user(
     um: UserManager = Depends(get_user_manager),
     current_user: User = Depends(get_user),
 ) -> Any:
-    um.delete_user(current_user)
+    um.delete_user(user_id=current_user.Id)
 
 
 @router.get("/data", status_code=status.HTTP_200_OK)
 def get_settings(
-    udata: UserdataManager = Depends(get_userdata_manager),
+    um: UserManager = Depends(get_user_manager),
+    vm: VehicleManager = Depends(get_vehicle_manager),
     current_user: User = Depends(get_user),
 ) -> UserData:
     try:
-        vehicles = udata.list_vehicles(current_user)
+        vehicles = vm.list_vehicles(user=current_user)
         return UserData(
             User=current_user,
             Vehicles=[Vehicle(**v.model_dump()) for v in vehicles],

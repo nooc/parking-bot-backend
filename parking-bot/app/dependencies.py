@@ -83,7 +83,7 @@ def get_cred_info() -> dict:
         err.internal(str(ex))
 
 
-from app.services.data_manager import Database
+from app.services.datastore import Database
 
 
 def get_db(cred: dict = Depends(get_cred_info)) -> Database:
@@ -127,7 +127,7 @@ def get_user_manager(db=Depends(get_db), fernet=Depends(get_fernet)) -> UserMana
     return UserManager(db, fernet)
 
 
-from app.services.vehicle_manager import UserdataManager, VehicleManager
+from app.services.vehicle_manager import VehicleManager
 
 
 def get_vehicle_manager(

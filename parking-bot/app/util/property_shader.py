@@ -4,21 +4,17 @@ from typing import Any
 from cryptography.fernet import Fernet
 from pydantic import BaseModel
 
-from .datastore import Database
 
-
-class _DataManager(object):
+class PropertyShader(object):
     """Base class for data managers.
 
     Has database instance and encryption methods.
     """
 
-    _db: Database
     _fernet: Fernet
     _shaded_keys: list[str]
 
-    def __init__(self, db, fernet, shaded_keys):
-        self._db = db
+    def __init__(self, fernet, shaded_keys):
         self._fernet = fernet
         self._shaded_keys = shaded_keys
 
@@ -79,4 +75,4 @@ class _DataManager(object):
         return target
 
 
-__all__ = ("_DataManager",)
+__all__ = ("PropertyShader",)

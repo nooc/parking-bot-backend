@@ -1,14 +1,16 @@
 import app.util.http_error as err
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleDb
-from app.services.data_manager import _DataManager
+from app.services.datastore import Database
+from app.util.property_shader import PropertyShader
 
 
-class VehicleManager(_DataManager):
+class VehicleManager(PropertyShader):
     _SHADED = ["Phone", "LicensePlate"]
 
-    def __init__(self, db, fernet):
-        super().__init__(db, fernet, self._SHADED)
+    def __init__(self, db: Database, fernet):
+        super().__init__(fernet=fernet, shaded_keys=self._SHADED)
+        self._db = db
 
     # vehicles
 

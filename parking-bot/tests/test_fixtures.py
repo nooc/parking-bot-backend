@@ -8,10 +8,16 @@ from pydantic_settings import SettingsConfigDict
 import app.config
 from app import parkingbot
 from app.dependencies import get_db, get_fernet
+from app.services.carpark_manager import CarParkManager
 from app.services.gothenburg_open_data import CarParkDataSource
 from app.services.history_manager import HistoryManager
+from app.services.kiosk_manager import KioskManager
+from app.services.parking_manager import ParkingManager
+from app.services.task_manager import TaskManager
 from app.services.user_manager import UserManager
-from app.services.vehicle_manager import UserdataManager
+from app.services.vehicle_manager import VehicleManager
+from app.util.dggs import Dggs
+from tests.cloudtask_mock import CloudTaskClientMock
 
 
 class TestSettings(app.config.Settings):
@@ -95,10 +101,59 @@ def user_manager(database, fernet) -> UserManager:
 
 
 @pytest.fixture(scope="session")
-def userdata_manager(database, fernet) -> UserdataManager:
-    return UserdataManager(database, fernet)
+def dggs() -> Dggs:
+    return Dggs()
 
 
 @pytest.fixture(scope="session")
-def history_manager(database, fernet) -> HistoryManager:
-    return HistoryManager(database, fernet)
+def history_manager(database) -> HistoryManager:
+    return HistoryManager(database)
+
+
+@pytest.fixture(scope="session")
+def task_manager(settings) -> TaskManager:
+    ctc = CloudTaskClientMock()
+    return TaskManager(ctc, settings)
+
+
+@pytest.fixture(scope="session")
+def kiosk_manager() -> KioskManager:
+    httpx_mock = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(404, content="Not Found")
+        )
+    )
+    return KioskManager(database, settings, httpx_mock, dggs)
+
+
+@pytest.fixture(scope="session")
+def carpark_manager(
+    database, parking_data, dggs, settings, kiosk_manager
+) -> CarParkManager:
+    return CarParkManager(database, parking_data, dggs, settings, kiosk_manager)
+
+
+@pytest.fixture(scope="session")
+def vehicle_manager(database, fernet) -> VehicleManager:
+    return VehicleManager(database, fernet)
+
+
+@pytest.fixture(scope="session")
+def parking_manager(
+    database,
+    settings,
+    task_manager,
+    carpark_manager,
+    vehicle_manager,
+    history_manager,
+    kiosk_manager,
+) -> ParkingManager:
+    return ParkingManager(
+        database,
+        settings,
+        task_manager,
+        carpark_manager,
+        vehicle_manager,
+        history_manager,
+        kiosk_manager,
+    )
